@@ -192,7 +192,6 @@ class Cppqed:
         self.comments = buf[:pos].splitlines()
         # Eliminate comment section from buffer.
         buf = buf[pos:]
-        print buf[:200]
         # Separate trajectory data and statevectors.
         pos = 0
         while True:
@@ -224,7 +223,28 @@ class Cppqed:
                 f.write(sv.ascii())
             f.close()
 
-    def savematsv(self, path):
-        for sv in self.statevectors:
-            sv.savemat("%s_%s.dat.sv" % (path, sv.time))
+    def savematsv(self, path, split=True):
+        if split is True:
+            for sv in self.statevectors:
+                sv.savemat("%s_%s.dat.sv" % (path, sv.time))
+        else:
+            from scipy.io import savemat
+            d = {}
+            for sv in self.statevectors:
+                name = "sv_%s" % sv.time
+                d[name.replace(".", "_")] = sv.data
+            savemat(path, d)
+
+    def savenpysv(self, path, split=True):
+        if split is True:
+            for sv in self.statevectors:
+                sv.savenpy("%s_%s.dat.sv" % (path, sv.time))
+        else:
+            from scipy.io import save
+            d = {}
+            for sv in self.statevectors:
+                name = ("sv_%s" % sv.time).replace(".", "_")
+                print name
+                d[name] = sv.data
+            save(path, d)
 
