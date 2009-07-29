@@ -53,13 +53,13 @@ class BlitzArray:
                 d.append(tuple(entry))
             self.dimensions = tuple(d)
         else:
-            raise ValueError("Dimension argument must either be string or tuple.")
+            raise ValueError("Dimension argument must be string or tuple.")
         if isinstance(data, basestring):
             self.data = self._str2data(data, self.dimensions)
         elif isinstance(data, (tuple, list, numpy.array)):
             self.data = numpy.array(data)
         else:
-            raise ValueError("Data must be string or tuple, list or numpy array.")
+            raise ValueError("Data must be string, tuple, list or numpy array.")
         self.time = time
 
     def _str2dim(self, dimstr):
@@ -128,17 +128,35 @@ class BlitzArray:
             datastr = dataMD(data, dimensions)
         return "[ %s ]" % datastr
 
-    def savemat(self, path, **kwargs):
-        """
-        Save BlitzArray as Matlab file.
-        """
-        from scipy.io import savemat
+    def _save(self, func, path):
         d = {
             "data":self.data,
             #"dimensions":self.dimensions,
             #"time":self.time,
             }
-        savemat(path, d, **kwargs)
+        func(path, d)
+
+    def savemat(self, path):
+        """
+        Save BlitzArray as Matlab file.
+        """
+        from scipy.io import savemat
+        self._save(savemat, path)
+        
+    def savenpy(self, path):
+        """
+        Save BlitzArray as numpy file.
+        """
+        from scipy.io import save
+        self._save(save, path)
+
+    def saveascii(self, path):
+        """
+        Save Blitz array as ascii file.
+        """
+        f = open(path, "w")
+        f.write(self.ascii())
+        f.close()
         
     def ascii(self):
         """
@@ -150,38 +168,63 @@ class BlitzArray:
 
     def __str__(self):
         return "%s(%s)" % (self.__class__.__name__,
-                                self._dim2str(self.dimensions))
+                           self._dim2str(self.dimensions))
 
+class Cppqed:
+    def __init__(self):
+        self.comments = None
+        self.trajectory = None
+        self.statevectors = None
+        
+    def load(self, path):
+        # Read file into ram.
+        f = open(path)
+        buf = f.read()
+        f.close()
+        # Define different lists for trajectory and statevectors.
+        self.trajectory = trajectory = []
+        self.statevectors = arrays = []
+        # Find end of comment section.
+        pos = 0
+        while buf[pos] in ("\n", "#"):
+            pos = buf.find("\n\n", pos) + 2
+        # Store comments.
+        self.comments = buf[:pos].splitlines()
+        # Eliminate comment section from buffer.
+        buf = buf[pos:]
+        print buf[:200]
+        # Separate trajectory data and statevectors.
+        pos = 0
+        while True:
+            arraypos = buf.find("\n(", pos)
+            if arraypos == -1:
+                trajectory.extend(buf[pos:].splitlines())
+                break
+            trajectory.extend(buf[pos:arraypos].splitlines())
+            arrayendpos = buf.find("]", arraypos)
+            assert arrayendpos != -1
+            pt = trajectory[-1]
+            t = float(pt[:pt.find(" ")])
+            dimstr, datastr = buf[arraypos+1:arrayendpos+1].split("\n", 1)
+            arrays.append(BlitzArray(dimstr, datastr, t))
+            pos = arrayendpos+2
 
-def read(path):
-    f = open(path)
-    buf = f.read()
-    f.close()
-    timesteps = []
-    arrays = []
-    pos = 0
-    while buf[pos] in ("\n", "#"):
-        pos = buf.find("\n\n", pos) + 2
-    comments, data = buf[:pos], buf[buf.find("\n", pos)+1:]
-    pos = 0
-    i = 0
-    while True:
-        arraypos = data.find("\n(", pos)
-        if arraypos == -1:
-            timesteps.extend(data[pos:].splitlines())
-            break
-        arrayendpos = data.find("]", arraypos)
-        assert arrayendpos != -1
-        timesteps.extend(data[pos:arraypos].splitlines())
-        step = timesteps[-1]
-        t = float(step[:step.find(" ")])
-        dimstr, datastr = data[arraypos+1:arrayendpos+1].split("\n", 1)
-        arrays.append(BlitzArray(dimstr, datastr, t))
-        pos = arrayendpos+2
-    return comments, timesteps, arrays
+    def savetraj(self, path):
+        f = open(path, "w")
+        f.write("\n".join(self.comments) + "\n" + "\n".join(self.trajectory))
+        f.close()
 
-def write(path, array):
-    f = open(path, "w")
-    f.write(str(array))
-    f.close()
+    def savesv(self, path, split=True):
+        if split is True:
+            for sv in self.statevectors:
+                sv.saveascii("%s_%s.dat.sv" % (path, sv.time))
+        else:
+            f = open(path, "w+")
+            for sv in self.statevectors:
+                f.write(sv.ascii())
+            f.close()
+
+    def savematsv(self, path):
+        for sv in self.statevectors:
+            sv.savemat("%s_%s.dat.sv" % (path, sv.time))
 
