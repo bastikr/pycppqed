@@ -11,19 +11,19 @@ static PyObject *parse(PyObject *self, PyObject *args){
     // Create Array with right dimensions, length and content.
     int dims[1];
     dims[0] = length;
-    PyArrayObject *array = (PyArrayObject *)PyArray_FromDims(1, dims, PyArray_CDOUBLE);
+    PyArrayObject *array = (PyArrayObject *)
+        PyArray_FromDims(1, dims,PyArray_CDOUBLE);
     
     // Create pointer to data.
     double *data;
     data = (double*)array->data;
 
     // Go through the string and extract all numbers.
-    char **endptr;
     strtok(datastr, "(");
     int i;
     for (i=0; i<2*length; i+=2){
-        data[i] = strtod(strtok(NULL, ","), endptr); 
-        data[i+1] = strtod(strtok(NULL, ")"), endptr); 
+        data[i] = strtod(strtok(NULL, ","), NULL); 
+        data[i+1] = strtod(strtok(NULL, ")"), NULL); 
         strtok(NULL, "(");
         }
     return PyArray_Return(array);
@@ -37,7 +37,7 @@ static PyMethodDef DataMethods[] = {
 
 
 PyMODINIT_FUNC initcdata(void){
-    PyObject *m = Py_InitModule("cdata", DataMethods);
+    Py_InitModule("cdata", DataMethods);
     import_array();
     }
 

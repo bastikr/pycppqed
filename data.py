@@ -120,7 +120,7 @@ class BlitzArray:
                     datastr.append(data2D(data[i]))
                 return " \n  ".join(datastr)
             else:
-                raise AssertionError("There should only be 2 or more dimensions.")
+                raise AssertionError("There should be 2 or more dimensions.")
         length = len(dimensions)
         if length == 2:
             datastr = data2D(data)
@@ -184,7 +184,4 @@ def write(path, array):
     f = open(path, "w")
     f.write(str(array))
     f.close()
-#import profile
-#profile.run('read("ring_out2.dat")')
-c, t, a, = read("ring_out2.dat")
-print a[0].data
+
