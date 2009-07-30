@@ -11,40 +11,32 @@ class BlitzArray:
 
     >> ba = BlitzArray("(0,1)x(0,1)", "[ (1,2) (3,4) \n  (5,6) (7,8) ]")
 
-    A BlitzArray is defined by its dimensions, data and optionally by the
-    time when it was created.
+    A BlitzArray is defined by its data and dimensions.
     
-    * dimensions:
-        Either a string of the form "(0,12) x (0,31)" or a nested tuple/list
-        of the form ((0,12),(0,31))
-
     * data:
         Either a string of the blitz array form or nested tuple/lists/
         numpy-array.
 
-    * time:
-        Any value. (Default value is 0)
-
+    * dimensions:
+        Either a string of the form "(0,12) x (0,31)" or a nested tuple/list
+        of the form ((0,12),(0,31))
 
     All values can be easily accessed:
-
-    >> print ba.time
-    0
-
-    >> print ba.dimensions
-    ((0, 1), (0, 1))
 
     >> print ba.data
     array([[ 1.+2.j,  3.+4.j],
            [ 5.+6.j,  7.+8.j]])
 
+    >> print ba.dimensions
+    ((0, 1), (0, 1))
+
     >> print ba
     BlitzArray((0,1) x (0,1))
 
-    It's also possible to change these values, but there are absolutely no
-    consistency checks!
+    It's also possible to change these values, but be aware that there are
+    absolutely no consistency checks! 
     """
-    def __init__(self, dimensions, data, time=0):
+    def __init__(self, data, dimensions):
         if isinstance(dimensions, basestring):
             self.dimensions = self._str2dim(dimensions)
         elif isinstance(dimensions, (tuple, list)):
@@ -60,7 +52,6 @@ class BlitzArray:
             self.data = numpy.array(data)
         else:
             raise ValueError("Data must be string, tuple, list or numpy array.")
-        self.time = time
 
     def _str2dim(self, dimstr):
         """
@@ -128,20 +119,12 @@ class BlitzArray:
             datastr = dataMD(data, dimensions)
         return "[ %s ]" % datastr
 
-    def _save(self, func, path):
-        d = {
-            "data":self.data,
-            #"dimensions":self.dimensions,
-            #"time":self.time,
-            }
-        func(path, d)
-
     def savemat(self, path):
         """
         Save BlitzArray as Matlab file.
         """
         from scipy.io import savemat
-        self._save(savemat, path)
+        savemat(path, {"data": self.data})
         
     def savenpy(self, path):
         """
@@ -166,85 +149,155 @@ class BlitzArray:
         data = self.data
         return "%s\n%s" % (self._dim2str(dims), self._data2str(data, dims))
 
-    def __str__(self):
+    def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__,
                            self._dim2str(self.dimensions))
 
-class Cppqed:
-    def __init__(self):
-        self.comments = None
-        self.trajectory = None
-        self.statevectors = None
-        
-    def load(self, path):
+
+class StateVector(BlitzArray):
+    def __init__(self, data, dimensions=None, time=0):
+        if dimensions is None:
+            assert isinstance(data, numpy.array)
+            dimensions = []
+            for dim in data.shape:
+                dimensions.append((0,dim-1))
+        BlitzArray.__init__(self, data, dimensions)
+        self.time = time
+
+    def saveascii(self, path, head=True):
+        f = open(path, "w+")
+        f.write("# %s\n 1" % self.time)
+        f.write(self.ascii())
+        f.close()
+
+
+class Trajectory:
+    def __init__(self, traj):
+        self.subsysparts = parts = [0]
+        i = 0
+        for part in traj[0]:
+            i += len(part)
+            parts.append(i)
+        self.data = data = numpy.empty((len(traj), parts[-1]))
+        for trajpos, entry in enumerate(traj):
+            for entrypos, part in enumerate(entry):
+                a, b = parts[entrypos:entrypos+2]
+                data[trajpos][a:b] = part
+
+
+class CppqedOutputReader:
+    """
+    Class for working with C++QED output files.
+
+    >> co = CppqedOutput("Ring.dat")
+
+    The only parameter necessary for instantiation is the path to some C++QED
+    output file. To convert the data stored in that file into python data the
+    "load" method can be used:
+
+    >> co.load()
+
+    This reads in the data file and extracts comments, statevectors and
+    expectation values. These values can then be accessed by the attributes
+    "comments", "statevectors" and "expvalues".
+    """
+    def __init__(self, path):
+        self.path = path
+        self.commentstr = None
+        self.datastr = None
+
+    def read(self):
+        """
+        Read C++QED output file and split it into comments and data section.
+        """
         # Read file into ram.
-        f = open(path)
+        f = open(self.path)
         buf = f.read()
         f.close()
-        # Define different lists for trajectory and statevectors.
-        self.trajectory = trajectory = []
-        self.statevectors = arrays = []
         # Find end of comment section.
         pos = 0
         while buf[pos] in ("\n", "#"):
             pos = buf.find("\n\n", pos) + 2
         # Store comments.
-        self.comments = buf[:pos].splitlines()
+        self.commentstr = buf[:pos]
         # Eliminate comment section from buffer.
-        buf = buf[pos:]
-        # Separate trajectory data and statevectors.
+        self.datastr = buf[pos:]
+
+    def _parsedatastr(self, traj_handler, sv_handler):
+        buf = self.datastr
         pos = 0
         while True:
             arraypos = buf.find("\n(", pos)
             if arraypos == -1:
-                trajectory.extend(buf[pos:].splitlines())
+                map(traj_handler, buf[pos:].splitlines())
                 break
-            trajectory.extend(buf[pos:arraypos].splitlines())
+            map(traj_handler, buf[pos:arraypos].splitlines())
             arrayendpos = buf.find("]", arraypos)
             assert arrayendpos != -1
-            pt = trajectory[-1]
-            t = float(pt[:pt.find(" ")])
-            dimstr, datastr = buf[arraypos+1:arrayendpos+1].split("\n", 1)
-            arrays.append(BlitzArray(dimstr, datastr, t))
+            sv_handler(buf[arraypos+1:arrayendpos+1])
             pos = arrayendpos+2
 
-    def savetraj(self, path):
-        f = open(path, "w")
-        f.write("\n".join(self.comments) + "\n" + "\n".join(self.trajectory))
-        f.close()
+    def convert2python(self, update=False):
+        """
+        Convert data from C++QED output file into numpy arrays.
+        """
+        if update or self.datastr is None:
+            self.read()
+        traj = []
+        svs = []
+        def traj_handler(trajstr):
+            parts = trajstr.split("\t")
+            step = []
+            for part in parts:
+                step.append(map(float, part.split()))
+            traj.append(step)
+        def sv_handler(svstr):
+            dimstr, datastr = svstr.split("\n", 1)
+            t = traj[-1][0][0]
+            svs.append(StateVector(datastr, dimstr, t))
+        self._parsedatastr(traj_handler, sv_handler)
+        return Trajectory(traj), svs
 
-    def savesv(self, path, split=True):
-        if split is True:
-            for sv in self.statevectors:
-                sv.saveascii("%s_%s.dat.sv" % (path, sv.time))
-        else:
+    def saveascii(self, path, update=False, traj=True, sv=True):
+        """
+        Save data from C++QED output file as ascii file(s).
+        """
+        if update or self.datastr is None:
+            self.read()
+        assert self.commentstr is not None
+        _traj = []
+        def sv_handler(svstr):
+            if sv:
+                tr = _traj[-1]
+                t = tr[:tr.find(" ")]
+                if split:
+                    f = open("%s_%s.sv" % (path, t), "w")
+                    f.write(svstr)
+                    f.close()
+        self._parsedatastr(_traj.append, sv_handler)
+        if traj:
             f = open(path, "w+")
-            for sv in self.statevectors:
-                f.write(sv.ascii())
+            f.write(self.commentstr)
+            f.write("\n" + "\n".join(_traj))
             f.close()
-
-    def savematsv(self, path, split=True):
-        if split is True:
-            for sv in self.statevectors:
-                sv.savemat("%s_%s.dat.sv" % (path, sv.time))
-        else:
+       
+    def savemat(self, path, update=True, traj=True, svs=True, split=False):
+        """
+        Save data from C++QED output file as mat file(s).
+        """
+        _traj, _svs = self.convert2python(update)
+        if svs:
+            if split is True:
+                for sv in _svs:
+                    sv.savemat("%s_%s.sv" % (path, sv.time))
+            else:
+                from scipy.io import savemat
+                d = {}
+                for sv in _svs:
+                    name = "sv_%s" % sv.time
+                    d[name.replace(".", "_")] = sv.data
+                savemat("%s.sv" % path, d)
+        if traj:
             from scipy.io import savemat
-            d = {}
-            for sv in self.statevectors:
-                name = "sv_%s" % sv.time
-                d[name.replace(".", "_")] = sv.data
-            savemat(path, d)
-
-    def savenpysv(self, path, split=True):
-        if split is True:
-            for sv in self.statevectors:
-                sv.savenpy("%s_%s.dat.sv" % (path, sv.time))
-        else:
-            from scipy.io import save
-            d = {}
-            for sv in self.statevectors:
-                name = ("sv_%s" % sv.time).replace(".", "_")
-                print name
-                d[name] = sv.data
-            save(path, d)
+            savemat(path, {"traj":_traj.data})
 
