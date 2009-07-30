@@ -171,9 +171,56 @@ class StateVector(BlitzArray):
         f.close()
 
 
+class DataKeyInfo:
+    def __init__(self, datakeystr):
+        sectionstrs = datakeystr.split("\n# ")[1:]
+        self.sections = sections = []
+        for sectionstr in sectionstrs:
+            sections.append(DataKeySectionInfo(sectionstr))
+
+    def __str__(self):
+        return "Keys:\n  " + "\n  ".join(map(str, self.sections))
+
+class DataKeySectionInfo:
+    def __init__(self, sectionstr):
+        self.name, keystr = sectionstr.split(" ", 1)
+        self.content = items = {}
+        pos_dot = keystr.find(".")
+        pos_start = 0
+        while True:
+            pos_nextdot = keystr.find(".", pos_dot+1)
+            if pos_nextdot == -1:
+                key = int(keystr[pos_start:pos_dot])
+                value = keystr[pos_dot+1:].strip()
+                items[key] = value
+                break
+            pos_nextstart = keystr.rfind(" ", 0, pos_nextdot)
+            key = int(keystr[pos_start:pos_dot])
+            value = keystr[pos_dot+1:pos_nextstart].strip()
+            items[key] = value
+            pos_start, pos_dot = pos_nextstart, pos_nextdot
+            
+    def __str__(self):
+        return "%s: '%s'" % (self.name, "', '".join(self.content.values()))
+
+class Info:
+    def __init__(self, commentstr):
+        sections = commentstr.split("\n\n")
+        self.head = sections[0]
+        self.subsystems = sections[1:-1]
+        self.datakey = DataKeyInfo(sections[-1])
+
+    def __str__(self):
+        return "%s\n\n%s\n\n%s" % (self.head, self.subsystems, self.datakey)
+
+
 class Trajectory:
-    def __init__(self, traj):
-        self.subsysparts = parts = [0]
+    def __init__(self, traj, info=None):
+        if info is None:
+            self.info = self._generateinfo(traj)
+        else:
+            self.info = info
+        parts = [0]
         i = 0
         for part in traj[0]:
             i += len(part)
@@ -183,6 +230,34 @@ class Trajectory:
             for entrypos, part in enumerate(entry):
                 a, b = parts[entrypos:entrypos+2]
                 data[trajpos][a:b] = part
+
+    def _generateinfo(self, traj):
+        raise NotImplementedError()
+
+    def plot(self, show=True):
+        import pylab
+        for i in range(1, len(self.info.datakey.sections)):
+            pylab.figure(i)
+            self.plot_section(i, show=False)
+        if show:
+            pylab.show()
+
+    def plot_section(self, section, show=True):
+        import pylab
+        if isinstance(section, int):
+            section = self.info.datakey.sections[section]
+        pylab.suptitle(section.name)
+        pylab.gcf().canvas.set_window_title(section.name)
+        count = len(section.content)
+        i = 0
+        for pos, key in section.content.items():
+            i += 1
+            pylab.subplot(count, 1, i)
+            pylab.xlabel("time")
+            pylab.ylabel(key)
+            pylab.plot(self.data[:,0], self.data[:,pos-1])
+        if show:
+            pylab.show()
 
 
 class CppqedOutputReader:
@@ -201,10 +276,12 @@ class CppqedOutputReader:
     expectation values. These values can then be accessed by the attributes
     "comments", "statevectors" and "expvalues".
     """
-    def __init__(self, path):
+    def __init__(self, path, read=True):
         self.path = path
         self.commentstr = None
         self.datastr = None
+        if read:
+            self.read()
 
     def read(self):
         """
@@ -219,7 +296,7 @@ class CppqedOutputReader:
         while buf[pos] in ("\n", "#"):
             pos = buf.find("\n\n", pos) + 2
         # Store comments.
-        self.commentstr = buf[:pos]
+        self.commentstr = buf[:pos-2]
         # Eliminate comment section from buffer.
         self.datastr = buf[pos:]
 
@@ -256,7 +333,8 @@ class CppqedOutputReader:
             t = traj[-1][0][0]
             svs.append(StateVector(datastr, dimstr, t))
         self._parsedatastr(traj_handler, sv_handler)
-        return Trajectory(traj), svs
+        info = Info(self.commentstr)
+        return Trajectory(traj, info), svs
 
     def saveascii(self, path, update=False, traj=True, sv=True):
         """
