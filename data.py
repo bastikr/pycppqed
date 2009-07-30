@@ -310,6 +310,19 @@ class Trajectory:
             for entrypos, part in enumerate(entry):
                 a, b = parts[entrypos:entrypos+2]
                 data[trajpos][a:b] = part
+        class S:
+            def __init__(self, data, info):
+                self.data = data
+                self.info = info
+            def plot(s, show=True):
+                self.plot_section(s.info, show)
+                
+        self.sections = sections = []
+        for section in self.info.datakey.sections:
+            items = section.content.items()
+            items.sort(lambda x,y:cmp(x[0], y[0]))
+            view = self.data[:,items[0][0]-1:items[-1][0]:]
+            sections.append(S(view, section))
 
     def _generateinfo(self, traj):
         # TODO: Implement Trajectory._generateinfo method.
