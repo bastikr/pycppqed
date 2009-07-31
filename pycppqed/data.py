@@ -47,7 +47,7 @@ class BlitzArray:
             raise ValueError("Dimension argument must be string or tuple.")
         if isinstance(data, basestring):
             self.data = self._str2data(data, self.dimensions)
-        elif isinstance(data, (tuple, list, numpy.array)):
+        elif isinstance(data, (tuple, list, numpy.ndarray)):
             self.data = numpy.array(data)
         else:
             raise ValueError("Data must be string, tuple, list or numpy array.")
@@ -179,7 +179,7 @@ class StateVector(BlitzArray):
         if dimensions is None:
             # The dimensions can be determined from a numpy array but not
             # from a Blitz array ascii representation.
-            assert isinstance(data, numpy.array)
+            assert isinstance(data, numpy.ndarray)
             dimensions = []
             for dim in data.shape:
                 dimensions.append((0,dim-1))
@@ -209,6 +209,12 @@ class StateVector(BlitzArray):
         f.write("# %s\n 1" % self.time)
         f.write(self.ascii())
         f.close()
+
+    def outer(self, other):
+        return StateVector(numpy.multiply.outer(self.data, other.data))
+
+    def __xor__(self, other):
+        return self.outer(other)
 
 
 class Info:
