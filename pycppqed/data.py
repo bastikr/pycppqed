@@ -1,8 +1,10 @@
 import numpy
 import time
+import utils
 try:
     import cdata
 except:
+    print "C extension 'cdata' is not used ..."
     cdata = None
 
 class BlitzArray:
@@ -234,9 +236,9 @@ class DataKeyInfo:
     """
     def __init__(self, datakeystr):
         sectionstrs = datakeystr.split("\n# ")[1:]
-        self.sections = sections = []
+        self.subsystems = subsystems = []
         for sectionstr in sectionstrs:
-            sections.append(DataKeySectionInfo(sectionstr))
+            subsystems.append(DataKeySectionInfo(sectionstr))
 
     def __str__(self):
         return "Keys:\n  " + "\n  ".join(map(str, self.sections))
@@ -248,7 +250,7 @@ class DataKeySectionInfo:
     """
     def __init__(self, sectionstr):
         self.name, keystr = sectionstr.split(" ", 1)
-        self.content = items = {}
+        self.entrys = entrys = utils.OrderedDict()
         pos_dot = keystr.find(".")
         pos_start = 0
         while True:
@@ -256,16 +258,54 @@ class DataKeySectionInfo:
             if pos_nextdot == -1:
                 key = int(keystr[pos_start:pos_dot])
                 value = keystr[pos_dot+1:].strip()
-                items[key] = value
+                entrys[key] = value
                 break
             pos_nextstart = keystr.rfind(" ", 0, pos_nextdot)
             key = int(keystr[pos_start:pos_dot])
             value = keystr[pos_dot+1:pos_nextstart].strip()
-            items[key] = value
+            entrys[key] = value
             pos_start, pos_dot = pos_nextstart, pos_nextdot
             
     def __str__(self):
         return "%s: '%s'" % (self.name, "', '".join(self.content.values()))
+
+
+class TrajectorySubsystem:
+    def __init__(self, data, time, number, info):
+        self.data = data
+        self.time = time
+        self.number = number
+        self.name = info.name
+        self.entrys = info.entrys
+
+    def plot(self, show=True):
+        """
+        Plot this subsystem.
+
+        **Usage**
+            >>> ts.plot()
+
+        **Arguments**
+            *show*
+                If set True pylab.show() will be called in the end and therefor
+                a window containing the plot will appear automatically.
+                (Default is True)
+        """
+        import pylab
+        title = "SubSystem %s: %s" % (self.number, self.name)
+        if hasattr(pylab, "suptitle"): # For old versions not available.
+            pylab.suptitle(title) 
+            pylab.gcf().canvas.set_window_title(title)
+        count = len(self.entrys)
+        i = 0
+        for pos, key in self.entrys.items():
+            i += 1
+            pylab.subplot(count, 1, i)
+            pylab.ylabel(key)
+            pylab.plot(self.time, self.data[:,i-1])
+        pylab.xlabel("time")
+        if show:
+            pylab.show()
 
 
 class Trajectory:
@@ -298,69 +338,43 @@ class Trajectory:
             for entrypos, part in enumerate(entry):
                 a, b = parts[entrypos:entrypos+2]
                 data[trajpos][a:b] = part
-        class S:
-            def __init__(self, data, info):
-                self.data = data
-                self.info = info
-            def plot(s, show=True):
-                self.plot_section(s.info, show)
                 
-        self.sections = sections = []
-        for section in self.info.datakey.sections:
-            items = section.content.items()
+        self.subsystems = subsystems = []
+        for i, subsystem in enumerate(self.info.datakey.subsystems):
+            items = subsystem.entrys.items()
             items.sort(lambda x,y:cmp(x[0], y[0]))
-            view = self.data[:,items[0][0]-1:items[-1][0]:]
-            sections.append(S(view, section))
+            data = self.data[:,items[0][0]-1:items[-1][0]:]
+            time = self.data[:,0:1:]
+            subsystems.append(TrajectorySubsystem(data, time, i, subsystem))
 
     def _generateinfo(self, traj):
         # TODO: Implement Trajectory._generateinfo method.
         raise NotImplementedError()
 
-    def plot(self, show=True):
+    def plot(self, subsystems=None, show=True):
         """
-        Plot all sections into separate figures.
+        Plot subsystems into separate figures.
 
         **Usage**
-            >>> tr.plot()
+            >>> tr.plot()   # Plot all subsystems.
+            >>> tr.plot([1, 2]) # Plot subsystems number 1 and 2.
 
         **Arguments**
+            *subsystems*
+                Takes a list of numbers specifieing which subsystems are being
+                plotted. If given None all subsystems will be plotted.
+            
             *show*
                 If set True pylab.show() will be called in the end and therefor
                 a window containing the plot will appear automatically.
                 (Default is True)
         """
         import pylab
-        for i in range(1, len(self.info.datakey.sections)):
+        if subsystems is None:
+            subsystems = range(len(self.subsystems))
+        for subsys in subsystems:
             pylab.figure(i)
-            self.plot_section(i, show=False)
-        if show:
-            pylab.show()
-
-    def plot_section(self, section, show=True):
-        """
-        Plot the given section.
-
-        **Usage**
-            >>> tr.plot_section(2)
-            >>> tr.plot_section(tr.info.datakey.section[2])
-
-        **Arguments**
-            * *section*
-                A number or a DataKeySectionInfo object.
-        """
-        import pylab
-        if isinstance(section, int):
-            section = self.info.datakey.sections[section]
-        pylab.suptitle(section.name)
-        pylab.gcf().canvas.set_window_title(section.name)
-        count = len(section.content)
-        i = 0
-        for pos, key in section.content.items():
-            i += 1
-            pylab.subplot(count, 1, i)
-            pylab.xlabel("time")
-            pylab.ylabel(key)
-            pylab.plot(self.data[:,0], self.data[:,pos-1])
+            self.subsystems[subsys].plot(show=False)
         if show:
             pylab.show()
 
