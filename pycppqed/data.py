@@ -384,15 +384,92 @@ class Trajectory:
         if show:
             pylab.show()
 
+    def savemat(self, path):
+        from scipy.io import savemat
+        savemat(path, {"traj":self.data})
+
+
+class CppqedStateVectorReader:
+    """
+    Class for working with C++QED .sv files.
+
+    **Usage**
+        >>> reader = CppqedStateVectorReader("Ring.sv")
+        >>> sv = reader.convert2python()
+        >>> sv.writemat("Ring")
+
+     **Arguments**
+        * *path*
+            The path to a C++QED .sv file.
+
+        * *read*
+            If set True the file is read automatically during instantiation. 
+            Otherwise it is necessary to call the "read" method separately.
+            This only needs to be done explicitly if you want access the
+            attributes "datastr" or "commentstr" directly. 
+    """
+    def __init__(self, path, read=True):
+        self.path = path
+        self.commentstr = None
+        self.datastr = None
+        if read:
+            self.read()
+
+    def read(self):
+        f = open(self.path)
+        buf = f.read()
+        f.close()
+        assert buf.startswith("# ")
+        self.commentstr, self.datastr = buf.split("\n", 1)
+
+    def convert2python(self, update=False):
+        """
+        Convert the data into a StateVector instance.
+
+        **Usage**
+            >>> sv = reader.convert2python()
+           
+        **Arguments**
+            *update*
+                Read the C++QED output file before doing the conversion. This
+                is done automatically if datastr is not yet available. (Default
+                is False)
+        """
+        if update or self.datastr is None:
+            self.read()
+        time = self.commentstr[2:self.commentstr.find(" ", 4)]
+        dimstr, datastr = self.datastr.split("\n", 1)
+        return StateVector(datastr, dimstr, float(time))
+
+    def savemat(self, path, update=False):
+        """
+        Save data from C++QED .sv file as .mat file.
+        
+        **Usage**
+            >>> reader.savemat("Ring")
+            
+        **Arguments**
+            * *path*
+                The path where the output should be written. ".sv.mat" is
+                appended to this path automatically.
+
+            * *update*
+                Read the C++QED .sv file before doing the writing. This is
+                done automatically if datastr is not yet available. (Default
+                is False)
+        """
+        sv = self.convert2python(update)
+        sv.savemat("%s_%s.sv" % (path, sv.time))
+ 
 
 class CppqedOutputReader:
     """
     Class for working with C++QED output files.
     
     **Usage**
-        >>> co = CppqedOutput("Ring.dat")
-        >>> traj, svs = co.convert2python()
-        >>> co.writemat("Ring")
+        >>> reader = CppqedOutputReader("Ring.dat")
+        >>> traj, svs = reader.convert2python()
+        >>> reader.savemat("Ring")
 
     **Arguments**
         * *path*
@@ -452,7 +529,7 @@ class CppqedOutputReader:
         Convert datastr into Trajectory object and list of StateVector objects.
 
         **Usage**
-            >>> traj, svs = co.convert2python()
+            >>> traj, svs = reader.convert2python()
 
         **Arguments**
             *update*
@@ -523,6 +600,9 @@ class CppqedOutputReader:
         """
         Save data from C++QED output file as mat file(s).
         
+        **Usage**
+            >>> reader.savemat("Ring")
+            
         **Arguments**
             * *path*
                 The path where the output should be written. For state vectors
@@ -558,6 +638,5 @@ class CppqedOutputReader:
                     d[name.replace(".", "_")] = sv.data
                 savemat("%s.sv" % path, d)
         if traj:
-            from scipy.io import savemat
-            savemat(path, {"traj":_traj.data})
+            traj.savemat(path)
 
