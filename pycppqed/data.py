@@ -106,7 +106,7 @@ class BlitzArray:
                     datastr.append(dataMD(data[i], otherdims))
                 return "\n".join(datastr)
             elif length == 2:
-                for i in range(dim0[1] - dim0[0]):
+                for i in range(dim0[1] - dim0[0] + 1):
                     datastr.append(data2D(data[i]))
                 return " \n  ".join(datastr)
             else:
@@ -206,7 +206,7 @@ class StateVector(BlitzArray):
         if not path.endswith(".sv"):
             path += ".sv"
         f = open(path, "w+")
-        f.write("# %s\n 1" % self.time)
+        f.write("# %s 1\n" % self.time)
         f.write(self.ascii())
         f.close()
 
@@ -379,7 +379,7 @@ class Trajectory:
         if subsystems is None:
             subsystems = range(len(self.subsystems))
         for subsys in subsystems:
-            pylab.figure(i)
+            pylab.figure(subsys)
             self.subsystems[subsys].plot(show=False)
         if show:
             pylab.show()
