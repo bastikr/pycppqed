@@ -1,9 +1,9 @@
 from distutils.core import setup, Extension
 
-cdata = Extension("cdata", sources=["pycppqed/data.c"])
+cio = Extension("cio", sources=["pycppqed/io.c"])
 
 setup(
     name = "cppqed-scripts",
     version = "0.1",
-    ext_modules = [cdata]
+    ext_modules = [cio]
     )

@@ -36,8 +36,8 @@ static PyMethodDef DataMethods[] = {
     };
 
 
-PyMODINIT_FUNC initcdata(void){
-    Py_InitModule("cdata", DataMethods);
+PyMODINIT_FUNC initcio(void){
+    Py_InitModule("cio", DataMethods);
     import_array();
     }
 
