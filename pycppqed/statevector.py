@@ -6,6 +6,7 @@ class StateVector(numpy.ndarray):
 
     **Usage**
         >>> sv = StateVector((0.3, 0.4, 0.51, 0.7), 0.2)
+        >>> sv = StateVector(numpy.arange(12).reshape(3,4))
 
     **Arguments**
         * *data*
@@ -55,4 +56,26 @@ class StateVector(numpy.ndarray):
         return StateVector(numpy.multiply.outer(self, other))
 
     __xor__ = outer
+
+    def plot(self, show=True):
+        import pylab
+        dims = len(self.shape)
+        if dims == 1:
+            pylab.subplot(211)
+            pylab.plot(numpy.real(self))
+            pylab.title("Real part")
+            pylab.subplot(212)
+            pylab.plot(numpy.imag(self))
+            pylab.title("Imaginary part")
+        elif dims == 2:
+            pylab.subplot(211)
+            pylab.imshow(numpy.real(self), interpolation="nearest")
+            pylab.title("Real part")
+            pylab.subplot(212)
+            pylab.imshow(numpy.real(self), interpolation="nearest")
+            pylab.title("Imaginary part")
+        else:
+            raise TypeError("Too many dimensions to plot!")
+        if show:
+            pylab.show()
 
