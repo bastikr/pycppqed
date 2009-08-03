@@ -19,7 +19,7 @@ class StateVector(numpy.ndarray):
 
         * Any other argument that a numpy array can use.
     """
-    def __new__(cls, data, time=0, norm=True, **kwargs):
+    def __new__(cls, data, time=0, norm=False, **kwargs):
         array = numpy.array(data, **kwargs)
         if norm:
             array = normalize(array)
@@ -91,3 +91,11 @@ class StateVector(numpy.ndarray):
 def normalize(array):
     N = (array*array.conj()).sum()
     return array/numpy.sqrt(N)
+
+def adjust(array, length):
+    import scipy.interpolate
+    X_old = numpy.linspace(0,1,len(array))
+    f = scipy.interpolate.interp1d(X_old, array)
+    X_new = numpy.linspace(0,1,length)
+    return StateVector(f(X_new))
+
