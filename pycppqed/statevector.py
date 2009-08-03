@@ -1,4 +1,8 @@
 import numpy
+try:
+    set()
+except NameError:
+    from sets import Set as set
 
 class StateVector(numpy.ndarray):
     r"""
@@ -46,6 +50,52 @@ class StateVector(numpy.ndarray):
         return "%s(%s)" % (self.__class__.__name__,
                            self._dim2str(self.dimensions))
 
+    def norm(self):
+        return norm(self)
+
+    def normalize(self):
+        return normalize(self)
+
+    def reduce(self, indices):
+        """
+        Calculate the reduced density matrix.
+
+        **Usage**
+            >>> rsv = sv.reduce(1)
+            >>> rsv = sv.reduce((1,2))
+
+        **Arguments**
+            * *indices*
+                An integer or a list of integers specifying over which
+                subsystems should be summated.
+        """
+        if isinstance(indices, int):
+            a = (indices,)
+        else:
+            a = list(set(indices))
+            a.sort()
+            a.reverse()
+        array = self
+        for i in a:
+            array = array.sum(axis=i)
+        return array
+
+    def expvalue(self, baseexpvalues, indices=None):
+        if indices is not None:
+            rem = set(range(len(self.shape))).difference(indices)
+            sv = self.reduce(rem)
+        else:
+            sv = self
+        return ((sv^sv.conjugate())*baseexpvalues).sum()
+
+    def diagexpvalue(self, baseexpvalues, indices=None):
+        if indices is not None:
+            rem = set(range(len(self.shape))).difference(indices)
+            sv = self.reduce(rem)
+        else:
+            sv = self
+        return ((sv*sv.conjugate())*baseexpvalues).sum()
+
     def outer(self, other):
         """
         Return the outer product between this and the given StateVector.
@@ -88,11 +138,22 @@ class StateVector(numpy.ndarray):
             pylab.show()
 
 
+def norm(array):
+    """
+    Return the norm of the array.
+    """
+    return numpy.sqrt((array*array.conj()).sum())
+
 def normalize(array):
-    N = (array*array.conj()).sum()
-    return array/numpy.sqrt(N)
+    """
+    Return a normalized array.
+    """
+    return array/norm(array)
 
 def adjust(array, length):
+    """
+    Adjust the dimensionality of a 1D StateVector.
+    """
     import scipy.interpolate
     X_old = numpy.linspace(0,1,len(array))
     f = scipy.interpolate.interp1d(X_old, array)
