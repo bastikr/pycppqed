@@ -19,8 +19,10 @@ class StateVector(numpy.ndarray):
 
         * Any other argument that a numpy array can use.
     """
-    def __new__(cls, data, time=0, **kwargs):
+    def __new__(cls, data, time=0, norm=True, **kwargs):
         array = numpy.array(data, **kwargs)
+        if norm:
+            array = normalize(array)
         array = array.view(cls)
         array.time = time
         return array
@@ -61,21 +63,31 @@ class StateVector(numpy.ndarray):
         import pylab
         dims = len(self.shape)
         if dims == 1:
-            pylab.subplot(211)
+            pylab.subplot(311)
             pylab.plot(numpy.real(self))
             pylab.title("Real part")
-            pylab.subplot(212)
+            pylab.subplot(312)
             pylab.plot(numpy.imag(self))
             pylab.title("Imaginary part")
+            pylab.subplot(313)
+            pylab.plot(self*self.conjugate())
+            pylab.title("Abs square")
         elif dims == 2:
-            pylab.subplot(211)
+            pylab.subplot(311)
             pylab.imshow(numpy.real(self), interpolation="nearest")
             pylab.title("Real part")
-            pylab.subplot(212)
+            pylab.subplot(312)
             pylab.imshow(numpy.real(self), interpolation="nearest")
             pylab.title("Imaginary part")
+            pylab.subplot(313)
+            pylab.imshow(self*self.conjugate(), interpolation="nearest")
+            pylab.title("Abs square")
         else:
             raise TypeError("Too many dimensions to plot!")
         if show:
             pylab.show()
 
+
+def normalize(array):
+    N = (array*array.conj()).sum()
+    return array/numpy.sqrt(N)
