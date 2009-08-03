@@ -20,8 +20,8 @@ class StateVectorTestCase(unittest.TestCase):
         sv1 = statevector.StateVector((1,2))
         sv2 = statevector.StateVector((3,4))
         sv = statevector.StateVector(((3,4),(6,8)))
-        self.assertTrue((sv1^sv2==sv).all())
-        self.assertTrue((sv1^(3,4)==sv).all())
+        self.assert_((sv1^sv2==sv).all())
+        self.assert_((sv1^(3,4)==sv).all())
 
 
 if __name__ == "__main__":

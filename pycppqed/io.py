@@ -6,7 +6,6 @@ import description
 try:
     import cio
 except:
-    raise
     print "C extension 'cio' is not used ..."
     cio = None
 

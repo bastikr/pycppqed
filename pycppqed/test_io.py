@@ -11,13 +11,15 @@ class BlitzTestCase(unittest.TestCase):
         for a in arrays:
             blitzstr = io._numpy2blitz(a)
             na = io._blitz2numpy(blitzstr)
-            self.assertTrue((a==na).all())
+            self.assert_((a==na).all())
 
 
 class CppqedTestCase(unittest.TestCase):
     def test_loadoutput(self):
         basedir = os.path.dirname(__file__)
-        for path in os.listdir(os.path.join(basedir, "test")):
+        testdir = os.path.join(basedir, "test")
+        for name in os.listdir(testdir):
+            path = os.path.join(testdir, name)
             traj, svs = io.load_cppqed_output(path)
 
 
