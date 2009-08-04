@@ -51,9 +51,15 @@ class StateVector(numpy.ndarray):
                            self._dim2str(self.dimensions))
 
     def norm(self):
+        """
+        Calculate the norm of the StateVector.
+        """
         return norm(self)
 
     def normalize(self):
+        """
+        Return a normalized StateVector.
+        """
         return normalize(self)
 
     def reduce(self, indices):
@@ -77,7 +83,7 @@ class StateVector(numpy.ndarray):
             a.reverse()
         array = self
         for i in a:
-            array = array.sum(axis=i)
+            array = array.sum(axis=i).normalize()
         return array
 
     def expvalue(self, baseexpvalues, indices=None):
@@ -109,28 +115,31 @@ class StateVector(numpy.ndarray):
 
     __xor__ = outer
 
-    def plot(self, show=True):
+    def plot(self, x=None, show=True, **kwargs):
         import pylab
         dims = len(self.shape)
+        if x is None:
+            x = numpy.arange(self.shape[0])
         if dims == 1:
             pylab.subplot(311)
-            pylab.plot(numpy.real(self))
+            pylab.plot(x, numpy.real(self), **kwargs)
             pylab.title("Real part")
             pylab.subplot(312)
-            pylab.plot(numpy.imag(self))
+            pylab.plot(x, numpy.imag(self), **kwargs)
             pylab.title("Imaginary part")
             pylab.subplot(313)
-            pylab.plot(self*self.conjugate())
+            pylab.plot(x, self*self.conjugate(), **kwargs)
             pylab.title("Abs square")
         elif dims == 2:
             pylab.subplot(311)
-            pylab.imshow(numpy.real(self), interpolation="nearest")
+            pylab.imshow(numpy.real(self), interpolation="nearest", **kwargs)
             pylab.title("Real part")
             pylab.subplot(312)
-            pylab.imshow(numpy.real(self), interpolation="nearest")
+            pylab.imshow(numpy.real(self), interpolation="nearest", **kwargs)
             pylab.title("Imaginary part")
             pylab.subplot(313)
-            pylab.imshow(self*self.conjugate(), interpolation="nearest")
+            pylab.imshow(self*self.conjugate(), interpolation="nearest",
+                         **kwargs)
             pylab.title("Abs square")
         else:
             raise TypeError("Too many dimensions to plot!")

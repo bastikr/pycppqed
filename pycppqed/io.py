@@ -81,7 +81,7 @@ def _split_cppqed_output(path, ev_handler, sv_handler):
     while buf[pos] in ("\n", "#"):
         pos = buf.find("\n\n", pos) + 2
     # Store comments in Info object.
-    desc = buf[:pos-2]
+    descr = buf[:pos-2]
     # Eliminate comment section from buffer.
     buf = buf[pos:]
     pos = 0
@@ -115,7 +115,7 @@ def load_cppqed_output(path):
         t = evs[-1][0][0]
         ba = _blitz2numpy(svstr)
         svs.append(statevector.StateVector(ba, t))
-    descstr = _parse_cppqed_output(path, ev_handler, sv_handler)
+    descstr = _split_cppqed_output(path, ev_handler, sv_handler)
     desc = description.Description(descstr)
     traj = expvalues.Trajectory(evs, desc)
     return traj, svs
@@ -145,7 +145,7 @@ def split_cpped_output(readpath, writepath):
             f = open("%s_%s.sv" % (writepath, t), "w")
             f.write(svstr)
             f.close()
-    descstr = _parse_cppqed_output(path, evs.append, sv_handler)
+    descstr = _split_cppqed_output(path, evs.append, sv_handler)
     f = open(writepath, "w")
     f.write(descstr)
     f.write("\n" + "\n".join(evs))
