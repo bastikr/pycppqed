@@ -2,6 +2,13 @@
 Tutorial
 ========
 
+This document gives some basic instructions on how to use pycppqed.
+
+.. contents::
+    :depth: 3
+    :backlinks: top
+
+
 Introduction
 ============
 
@@ -28,7 +35,7 @@ files. To get this extension working go to the base directory and type::
     python setup.py build
 
 This will compile the extension file and save it to a path like
-*build/lib.linux-i686-2.6/cdata.so* relative to the base directory. Copy this
+*build/lib.linux-i686-2.6/cio.so* relative to the base directory. Copy this
 file into the pycppqed directory and enjoy the speed.
 
 
@@ -37,60 +44,27 @@ Usage
 
 All following commands assume that PyCppQED is already imported::
 
-    >>> import pycppqed
+    >>> import pycppqed as qed
 
 
 Split up C++QED output file into standard output and state vectors
 ------------------------------------------------------------------
 
-When a C++QED script is invoked using the :option:`svdc` argument state vectors are
-written into the output file between the calculated expectation values. With
-PyCppQED it's easy to extract the state vectors into own files and getting a
-standard C++QED output file.
+When a C++QED script is invoked using the :option:`svdc` argument state vectors
+are written into the output file between the calculated expectation values.
+With PyCppQED it's easy to extract the state vectors into own files and
+getting a standard C++QED output file.
 
-Everytime you want to read somthing from a C++QED output file you will need
-a :class:`CppqedOutputReader` instance::
+Every time you want to read/write something from/as a C++QED output file you
+will need the :module:`io` module. It has several functions to load, save 
+and convert C++QED output files. One of the of them is the
+:func:`split_cppqed_output` function::
 
-    >>> reader = pycppqed.CppqedOutputReader("ring.dat")
+    >>> qed.io.split_cppqed_output("ring.dat", "newring")
 
-As argument the reader takes the path to an output file. Writing the new
-files is easy using the :meth:`saveascii` method::
-
-    >>> reader.saceascii("ring")
-
-This writes the standard output file to :file:`ring` and the statevectors into
-separate files named :file:`ring_time.sv` where :token:`time` is substituted
-by the time when this state vector was reached.
-
-
-Convert C++QED output file into *.mat* file
--------------------------------------------
-
-If you want to use `Matlab`_ or `Octave`_ for further processing of the data
-you can use PyCppQED to convert a C++QED output file into a *.mat* file.
-Again, we have to create a reader object::
-    
-    >>> reader = pycppqed.CppqedOutputReader("ring.dat")
-
-To convert the given file into a *.mat* file we can use the :meth:`savemat`
-method::
-
-    >>> reader.savemat("ring")
-
-This command will write the expectation values into a file named
-:file:`ring.mat` and all state vectors together into a single file called
-:file:`ring.sv.mat`. The state vectors in the second file are named
-:obj:`sv_time` where :token:`time` is replaced by the time when the specific
-state vector was reached (Dots in the time value are replaced by an
-underscore).
-
-If you prefer to write every state vector into a separate file you can use the
-:obj:`split` argument::
-
-    >>> reader.savemat("ring", split=True)
-
-This will create multiple files for the state vectors named
-:file:`ring_time.sv.mat` where time is replaced as usual.
+This writes the standard output file to :file:`newring` and the state vectors
+into separate files named :file:`ring_time.sv` where :token:`time` is
+substituted by the time when this state vector was reached.
 
 
 .. _import2python:
@@ -98,21 +72,49 @@ This will create multiple files for the state vectors named
 Import C++QED output file into python
 -------------------------------------
 
-Again we need a reader instance::
+Again we use the io module, but now the function :func:`load_cppqed_output`::
 
-    >>> reader = pycppqed.CppqedOutputReader("ring.dat")
+    >>> evs, svs = qed.io.load_cppqed_output("ring.dat")
 
-Converting the data stored in this file is done by the :meth:`convert2python`::
-
-    >>> traj, svs = reader.convert2python()
-
-This method returns two objects which represent the whole information stored
+This returns two objects which represent the whole information stored
 in the C++QED output file:
 
  * A Trajectory instance which holds all generated expectation values.
 
  * A list of state vectors stored in instances of the :class:`StateVector`
    class.
+
+
+Convert C++QED output file into *.mat* file
+-------------------------------------------
+
+..
+    If you want to use `Matlab`_ or `Octave`_ for further processing of the data
+    you can use PyCppQED to convert a C++QED output file into a *.mat* file.
+    Again, we have load the file like in 
+        
+        >>> reader = pycppqed.CppqedOutputReader("ring.dat")
+..
+    To convert the given file into a *.mat* file we can use the :meth:`savemat`
+    method::
+..
+        >>> reader.savemat("ring")
+..
+    This command will write the expectation values into a file named
+    :file:`ring.mat` and all state vectors together into a single file called
+    :file:`ring.sv.mat`. The state vectors in the second file are named
+    :obj:`sv_time` where :token:`time` is replaced by the time when the specific
+    state vector was reached (Dots in the time value are replaced by an
+    underscore).
+..
+    If you prefer to write every state vector into a separate file you can use the
+    :obj:`split` argument::
+..
+        >>> reader.savemat("ring", split=True)
+..
+    This will create multiple files for the state vectors named
+    :file:`ring_time.sv.mat` where time is replaced as usual.
+
 
 
 Visualization

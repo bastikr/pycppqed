@@ -5,47 +5,46 @@ PyCppQED API
 This document lists all classes and functions implemented in PyCppQED.
 
 .. contents::
-    :depth: 2
+    :depth: 3
     :backlinks: top
 
-BlitzArray
-----------
 
-.. autoclass:: pycppqed.BlitzArray
+:mod:`statevector`
+==================
+
+.. automodule:: pycppqed.statevector
     :members:
+    :undoc-members:
 
-StateVector
------------
 
-.. autoclass:: pycppqed.StateVector
+:mod:`pycppqed.initialconditions`
+=================================
+
+.. automodule:: pycppqed.initialconditions
     :members:
+    :undoc-members:
 
-Info
-----
 
-.. autoclass:: pycppqed.Info
+:mod:`pycppqed.io`
+==================
+
+.. automodule:: pycppqed.io
     :members:
+    :undoc-members:
 
-DataKeyInfo
------------
 
-.. autoclass:: pycppqed.DataKeyInfo
+:mod:`pycppqed.expvalues`
+=========================
+
+.. automodule:: pycppqed.expvalues
     :members:
+    :undoc-members:
 
-DataKeySectionInfo
-------------------
 
-.. autoclass:: pycppqed.DataKeySectionInfo
+:mod:`pycppqed.description`
+===========================
+
+.. automodule:: pycppqed.description
     :members:
+    :undoc-members:
 
-Trajectory
-----------
-
-.. autoclass:: pycppqed.Trajectory
-    :members:
-
-CppqedOutputReader
-------------------
-
-.. autoclass:: pycppqed.CppqedOutputReader
-    :members:
