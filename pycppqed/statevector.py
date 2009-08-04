@@ -152,7 +152,7 @@ def normalize(array):
 
 def adjust(array, length):
     """
-    Adjust the dimensionality of a 1D StateVector.
+    Adjust the dimensionality of a 1D array.
     """
     import scipy.interpolate
     X_old = numpy.linspace(0,1,len(array))
