@@ -64,7 +64,7 @@ class StateVector(numpy.ndarray):
 
     def reduce(self, indices):
         """
-        Calculate the reduced density matrix.
+        Calculate the reduced StateVector.
 
         **Usage**
             >>> rsv = sv.reduce(1)
@@ -86,21 +86,35 @@ class StateVector(numpy.ndarray):
             array = array.sum(axis=i).normalize()
         return array
 
-    def expvalue(self, baseexpvalues, indices=None):
-        if indices is not None:
-            rem = set(range(len(self.shape))).difference(indices)
-            sv = self.reduce(rem)
+    def reducesquare(self, indices):
+        if isinstance(indices, int):
+            indices = (indices,)
         else:
-            sv = self
-        return ((sv^sv.conjugate())*baseexpvalues).sum()
+            a = list(indices)
+            a.sort()
+        return numpy.tensordot(self, self.conjugate(), (a,a))
+
+    def _conjugate_indices(self, indices):
+        if isinstance(indices, int):
+            indices = (indices,)
+        return set(range(len(self.shape))).difference(indices)
+
+    def expvalue(self, baseexpvalues, indices=None):
+        if indices is not None:    
+            A = self.reducesquare(self._conjugate_indices(indices))
+        else:
+            A = self^self.conjugate()
+        return (A*baseexpvalues).sum()
 
     def diagexpvalue(self, baseexpvalues, indices=None):
+        A = self*self.conjugate()
         if indices is not None:
-            rem = set(range(len(self.shape))).difference(indices)
-            sv = self.reduce(rem)
-        else:
-            sv = self
-        return ((sv*sv.conjugate())*baseexpvalues).sum()
+            indices = list(self._conjugate_indices(indices))
+            indices.sort()
+            indices.reverse()
+            for index in indices:
+                A = A.sum(index)
+        return (A*baseexpvalues).sum()
 
     def outer(self, other):
         """
