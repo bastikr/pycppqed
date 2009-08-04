@@ -72,7 +72,7 @@ def _numpy2blitz(array):
     dimensionstr = " x ".join(dims)
     return "%s \n[ %s ]" % (dimensionstr, datastr)
 
-def load_cppqed_output(path):
+def _split_cppqed_output(path, ev_handler, sv_handler):
     f = open(path)
     buf = f.read()
     f.close()
@@ -81,23 +81,9 @@ def load_cppqed_output(path):
     while buf[pos] in ("\n", "#"):
         pos = buf.find("\n\n", pos) + 2
     # Store comments in Info object.
-    desc = description.Description(buf[:pos-2])
+    desc = buf[:pos-2]
     # Eliminate comment section from buffer.
     buf = buf[pos:]
-    # Define handlers for state vector strings and expectation values strings.
-    evs = [] # Expectation values
-    svs = [] # State vectors
-    def ev_handler(evstr):
-        parts = evstr.split("\t")
-        ev = []
-        for part in parts:
-            ev.append(map(float, part.split()))
-        evs.append(ev)
-    def sv_handler(svstr):
-        t = evs[-1][0][0]
-        ba = _blitz2numpy(svstr)
-        svs.append(statevector.StateVector(ba, t))
-    # Go through the datasection and extract state vectors and expectation values.
     pos = 0
     length = len(buf)
     while pos < length:
@@ -113,11 +99,26 @@ def load_cppqed_output(path):
         assert sv_end != -1
         sv_handler(buf[sv_start+1:sv_end+1])
         pos = sv_end + 2
+    return descr
+
+def load_cppqed_output(path):
+    # Define handlers for state vector strings and expectation values strings.
+    evs = [] # Expectation values
+    svs = [] # State vectors
+    def ev_handler(evstr):
+        parts = evstr.split("\t")
+        ev = []
+        for part in parts:
+            ev.append(map(float, part.split()))
+        evs.append(ev)
+    def sv_handler(svstr):
+        t = evs[-1][0][0]
+        ba = _blitz2numpy(svstr)
+        svs.append(statevector.StateVector(ba, t))
+    descstr = _parse_cppqed_output(path, ev_handler, sv_handler)
+    desc = description.Description(descstr)
     traj = expvalues.Trajectory(evs, desc)
     return traj, svs
-
-def save_cppqed_output(path):
-    raise NotImplementedError()
 
 def load_cppqed_sv(path):
     f = open(path)
@@ -135,29 +136,17 @@ def save_cppqed_sv(path, sv):
     f.write(_numpy2blitz(sv))
     f.close()
 
-def load_mat_exptraj(path):
-    raise NotImplementedError()
-
-def save_mat_exptraj(path):
-    raise NotImplementedError()
-
-def load_mat_svtraj(path):
-    raise NotImplementedError()
-
-def save_mat_svtraj(path):
-    raise NotImplementedError()
-
-def load_mat_sv(path):
-    from scipy.io import loadmat
-    return loadmat(path)
-
-def save_mat_sv(path, sv):
-    from scipy.io import savemat
-    savemat(path, {"sv": sv})
-
-def load_pycppqed(path):
-    raise NotImplementedError()
-
-def save_pycppqed(path):
-    raise NotImplementedError()
-
+def split_cpped_output(readpath, writepath):
+    evs = [] # Expectation values
+    def sv_handler(svstr):
+        if evs:
+            ev = evs[-1]
+            t = ev[:ev.find(" ")]
+            f = open("%s_%s.sv" % (writepath, t), "w")
+            f.write(svstr)
+            f.close()
+    descstr = _parse_cppqed_output(path, evs.append, sv_handler)
+    f = open(writepath, "w")
+    f.write(descstr)
+    f.write("\n" + "\n".join(evs))
+    f.close()
