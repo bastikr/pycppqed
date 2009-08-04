@@ -37,18 +37,8 @@ class StateVector(numpy.ndarray):
             dimensions.append((0,dim-1))
         self.dimensions = tuple(dimensions)
     
-    def _dim2str(self, dimensions):
-        """
-        Return the corresponding dimension string for the given nested tuple.
-        """
-        dims = []
-        for d in dimensions:
-            dims.append("(%s,%s)" % d)
-        return " x ".join(dims)
-
-    def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__,
-                           self._dim2str(self.dimensions))
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
 
     def norm(self):
         """
@@ -90,18 +80,12 @@ class StateVector(numpy.ndarray):
         if isinstance(indices, int):
             indices = (indices,)
         else:
-            a = list(indices)
-            a.sort()
+            a = _sorted_list(indices)
         return numpy.tensordot(self, self.conjugate(), (a,a))
-
-    def _conjugate_indices(self, indices):
-        if isinstance(indices, int):
-            indices = (indices,)
-        return set(range(len(self.shape))).difference(indices)
 
     def expvalue(self, baseexpvalues, indices=None):
         if indices is not None:    
-            A = self.reducesquare(self._conjugate_indices(indices))
+            A = self.reducesquare(_conjugate_indices(indices, self.ndim))
         else:
             A = self^self.conjugate()
         return (A*baseexpvalues).sum()
@@ -109,9 +93,8 @@ class StateVector(numpy.ndarray):
     def diagexpvalue(self, baseexpvalues, indices=None):
         A = self*self.conjugate()
         if indices is not None:
-            indices = list(self._conjugate_indices(indices))
-            indices.sort()
-            indices.reverse()
+            indices = _sorted_list(_conjugate_indices(indices, self.ndim),
+                                   True)
             for index in indices:
                 A = A.sum(index)
         return (A*baseexpvalues).sum()
@@ -161,6 +144,39 @@ class StateVector(numpy.ndarray):
             pylab.show()
 
 
+class StateVectorTrajectory(numpy.ndarray):
+    def __new__(cls, data, **kwargs):
+        array = numpy.array(data, **kwargs)
+        array = array.view(cls)
+        array.time = numpy.array([sv.time for sv in data])
+        svs = [None]*array.shape[0]
+        for i, entry in enumerate(array):
+            svs[i] = StateVector(entry, copy=False)
+        array.statevectors = svs
+        return array
+
+    def __array_finalize__(self, obj):
+        dimensions = []
+        for dim in obj.shape[1:]:
+            dimensions.append((0,dim-1))
+        self.dimensions = tuple(dimensions)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
+
+    def expvalue(self, baseexpvalues, indices=None):
+        evs = [None]*self.shape[0]
+        for i, sv in enumerate(self.statevectors):
+            evs[i] = sv.expvalue(baseexpvalues, indices)
+        return evs
+
+    def diagexpvalue(self, baseexpvalues, indices):
+        evs = [None]*self.shape[0]
+        for i, sv in enumerate(self.statevectors):
+            evs[i] = sv.diagexpvalue(baseexpvalues, indices)
+        return evs
+        
+
 def norm(array):
     """
     Return the norm of the array.
@@ -183,3 +199,23 @@ def adjust(array, length):
     X_new = numpy.linspace(0,1,length)
     return StateVector(f(X_new))
 
+def _dim2str(dimensions):
+    """
+    Return the corresponding dimension string for the given nested tuple.
+    """
+    dims = []
+    for d in dimensions:
+        dims.append("(%s,%s)" % d)
+    return " x ".join(dims)
+
+def _conjugate_indices(indices, ndim):
+    if isinstance(indices, int):
+        indices = (indices,)
+    return set(range(ndim)).difference(indices)
+
+def _sorted_list(iterable, reverse=False):
+    a = list(iterable)
+    a.sort()
+    if reverse:
+        a.reverse()
+    return a
