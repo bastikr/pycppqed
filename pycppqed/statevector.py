@@ -1,4 +1,5 @@
 import numpy
+import expvalues
 try:
     set()
 except NameError:
@@ -88,7 +89,7 @@ class StateVector(numpy.ndarray):
             A = self.reducesquare(_conjugate_indices(indices, self.ndim))
         else:
             A = self^self.conjugate()
-        return (A*baseexpvalues).sum()
+        return [(A*exp).sum() for exp in baseexpvalues]
 
     def diagexpvalue(self, baseexpvalues, indices=None):
         A = self*self.conjugate()
@@ -97,7 +98,7 @@ class StateVector(numpy.ndarray):
                                    True)
             for index in indices:
                 A = A.sum(index)
-        return (A*baseexpvalues).sum()
+        return [(A*exp).sum() for exp in baseexpvalues]
 
     def outer(self, other):
         """
@@ -164,17 +165,23 @@ class StateVectorTrajectory(numpy.ndarray):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
 
-    def expvalue(self, baseexpvalues, indices=None):
+    def expvalue(self, baseexpvalues, indices=None, titles=None,
+                       subsystems=None):
         evs = [None]*self.shape[0]
         for i, sv in enumerate(self.statevectors):
             evs[i] = sv.expvalue(baseexpvalues, indices)
-        return evs
+        evstraj = expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
+                                    subsystems) 
+        return evstraj
 
-    def diagexpvalue(self, baseexpvalues, indices):
+    def diagexpvalue(self, baseexpvalues, indices=None, titles=None,
+                           subsystems=None):
         evs = [None]*self.shape[0]
         for i, sv in enumerate(self.statevectors):
             evs[i] = sv.diagexpvalue(baseexpvalues, indices)
-        return evs
+        evstraj = expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
+                            subsystems)
+        return evstraj
         
 
 def norm(array):

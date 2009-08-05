@@ -3,6 +3,7 @@ import numpy
 import statevector
 import expvalues
 import description
+import utils
 try:
     import cio
 except:
@@ -109,16 +110,24 @@ def load_cppqed_output(path):
         parts = evstr.split("\t")
         ev = []
         for part in parts:
-            ev.append(map(float, part.split()))
+            ev.extend(map(float, part.split()))
         evs.append(ev)
     def sv_handler(svstr):
-        t = evs[-1][0][0]
+        t = evs[-1][0]
         ba = _blitz2numpy(svstr)
         svs.append(statevector.StateVector(ba, t))
     descstr = _split_cppqed_output(path, ev_handler, sv_handler)
     desc = description.Description(descstr)
-    traj = expvalues.Trajectory(evs, desc)
-    return traj, svs
+    titles = []
+    subsystems = utils.OrderedDict()
+    for i, subs in enumerate(desc.expvalues.subsystems):
+        keys = subs.entrys.keys()
+        subsystems["S" + str(i) + "_" + subs.name] = (keys[0], keys[-1])
+        titles.extend(subs.entrys.values())
+    evstraj = expvalues.ExpectationValuesTrajectory(evs,
+                            titles=titles, subsystems=subsystems)
+    svstraj = statevector.StateVectorTrajectory(svs)
+    return evstraj, svstraj
 
 def load_cppqed_sv(path):
     f = open(path)

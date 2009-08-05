@@ -48,12 +48,12 @@ class ExpectationValuesSubsection:
         while True:
             pos_nextdot = keystr.find(".", pos_dot+1)
             if pos_nextdot == -1:
-                key = int(keystr[pos_start:pos_dot])
+                key = int(keystr[pos_start:pos_dot]) - 1
                 value = keystr[pos_dot+1:].strip()
                 entrys[key] = value
                 break
             pos_nextstart = keystr.rfind(" ", 0, pos_nextdot)
-            key = int(keystr[pos_start:pos_dot])
+            key = int(keystr[pos_start:pos_dot]) - 1
             value = keystr[pos_dot+1:pos_nextstart].strip()
             entrys[key] = value
             pos_start, pos_dot = pos_nextstart, pos_nextdot
