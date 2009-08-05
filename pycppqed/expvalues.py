@@ -1,13 +1,13 @@
 import numpy
 # pylab is imported directly in the plot methods.
 
-class TrajectorySubsystem:
-    def __init__(self, data, time, number, info):
-        self.data = data
+class SubsystemTrajectory:
+    def __init__(self, time, data, name, titles, number):
         self.time = time
+        self.data = data
+        self.name = name
+        self.titles = titles
         self.number = number
-        self.name = info.name
-        self.entrys = info.entrys
 
     def plot(self, show=True):
         """
@@ -27,17 +27,17 @@ class TrajectorySubsystem:
         if hasattr(pylab, "suptitle"): # For old versions not available.
             pylab.suptitle(title) 
             pylab.gcf().canvas.set_window_title(title)
-        count = len(self.entrys)
-        i = 0
-        for pos, key in self.entrys.items():
-            i += 1
-            pylab.subplot(count, 1, i)
-            pylab.ylabel(key)
-            pylab.plot(self.time, self.data[:,i-1])
+        count = len(self.titles)
+        for pos, title in enumerate(self.titles):
+            pylab.subplot(count, 1, pos+1)
+            pylab.ylabel(title)
+            pylab.plot(self.time, self.data[:,pos])
         pylab.xlabel("time")
         if show:
             pylab.show()
 
+class Subsystems:
+    pass
 
 class Trajectory:
     """
@@ -54,33 +54,29 @@ class Trajectory:
         * *info*
             A Info object describing the data given as parameter "traj".
     """
-    def __init__(self, traj, info=None):
-        if info is None:
-            self.info = self._generateinfo(traj)
-        else:
-            self.info = info
-        parts = [0]
-        i = 0
-        for part in traj[0]:
-            i += len(part)
-            parts.append(i)
-        self.data = data = numpy.empty((len(traj), parts[-1]))
-        for trajpos, entry in enumerate(traj):
-            for entrypos, part in enumerate(entry):
-                a, b = parts[entrypos:entrypos+2]
-                data[trajpos][a:b] = part
-                
-        self.subsystems = subsystems = []
-        for i, subsystem in enumerate(self.info.expvalues.subsystems):
-            items = subsystem.entrys.items()
-            items.sort(lambda x,y:cmp(x[0], y[0]))
-            data = self.data[:,items[0][0]-1:items[-1][0]:]
-            time = self.data[:,0:1:]
-            subsystems.append(TrajectorySubsystem(data, time, i, subsystem))
+    def __init__(self, data, titles=None, subsystems=None):
+        assert len(data) > 0
+        cols = len(data[0])
+        assert len(titles) <= cols
+        if tiles is None:
+            titles = []
+        titles += [str(i) for i in range(len(titles), length)]
+        self.titles = numpy.array(titles)
+        self.data = numpy.array(data)
+        self.time = self.data[:,0:1:]
+        if subsystems is None:
+            subsystems = []
 
-    def _generateinfo(self, traj):
-        # TODO: Implement Trajectory._generateinfo method.
-        raise NotImplementedError()
+        self.subsystems = Subsystems()
+        i = 0
+        for name, cols in subsystems.iteritems():
+            a, b = cols
+            sub_data = data[:,a:b+1:]
+            sub_titles = titles[a:b+1:]
+            subtraj = SubsystemTrajectory(self.time, sub_data, name,
+                                          sub_titles, i)
+            setattr(self.subsystems, name, subtraj)
+            i += 1
 
     def plot(self, subsystems=None, show=True):
         """
