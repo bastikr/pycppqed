@@ -4,6 +4,7 @@ import statevector
 
 def gaussian(x0=0, k0=0, sigma=0.3, fin=6):
     import scipy.stats
+    sigma = sigma*numpy.sqrt(2)
     if 8.*sigma > 2*numpy.pi:
         print "Warning: Sigma is maybe too big."
     N = 2**fin
@@ -21,4 +22,11 @@ def gaussian(x0=0, k0=0, sigma=0.3, fin=6):
     F_transl = fft.fftshift(fft.fft(f_transl))*dx/numpy.sqrt(2*numpy.pi)
     F = F_transl*numpy.exp(-1j*(x0-L/2)*K)
     return statevector.StateVector(F)
+
+
+def coherent_state(alpha, N):
+    import scipy
+    n = numpy.arange(N)
+    x = alpha**n/(numpy.sqrt(scipy.factorial(n)))
+    return statevector.StateVector(x, norm=True)
 
