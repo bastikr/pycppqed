@@ -379,7 +379,7 @@ class StateVectorTrajectory(numpy.ndarray):
                 If svt is True, the return value will be an instance of
                 StateVectorTrajectory.
         """
-        svs = [None]*self.shape()
+        svs = [None]*self.shape[0]
         for i, sv in enumerate(self.statevectors):
             svs[i] = func(sv)
         if svt:
@@ -419,6 +419,8 @@ class StateVectorTrajectory(numpy.ndarray):
         Returns an ExpectationValuesTrajectory instance.
         """
         evs = self.map(lambda sv:sv.expvalue(operator, indices, multi), False)
+        if not multi:
+            evs = numpy.array(evs).reshape((-1,1))
         return expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
                                     subsystems) 
 
@@ -431,6 +433,8 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, multi),
                        False)
+        if not multi:
+            evs = numpy.array(evs).reshape((-1,1))
         return expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
                             subsystems)
         
