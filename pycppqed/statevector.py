@@ -52,17 +52,15 @@ class StateVector(numpy.ndarray):
         return array
 
     def __array_finalize__(self, obj):
-        dimensions = []
-        for dim in obj.shape:
-            dimensions.append((0,dim-1))
-        self.dimensions = tuple(dimensions)
+        self.dimensions = obj.shape
         if hasattr(obj, "time"):
             self.time = obj.time
         else:
             self.time = 0
     
     def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
+        clsname = self.__class__.__name__
+        return "%s(%s)" % (clsname, " x ".join(map(str, self.dimensions)))
 
     def norm(self):
         """
@@ -359,13 +357,12 @@ class StateVectorTrajectory(numpy.ndarray):
         return array
 
     def __array_finalize__(self, obj):
-        dimensions = []
-        for dim in obj.shape[1:]:
-            dimensions.append((0,dim-1))
-        self.dimensions = tuple(dimensions)
+        self.dimensions = obj.shape[1:]
 
     def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
+        clsname = self.__class__.__name__
+        dims = " x ".join(map(str, self.dimensions))
+        return "%s(%s x (%s))" % (clsname, self.shape[0], dims)
 
     def map(self, func, svt=True):
         """
