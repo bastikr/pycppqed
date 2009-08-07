@@ -71,7 +71,7 @@ def _numpy2blitz(array):
     for d in dimensions:
         dims.append("(%s,%s)" % d)
     dimensionstr = " x ".join(dims)
-    return "%s \n[ %s ]" % (dimensionstr, datastr)
+    return "%s \n[ %s ]\n" % (dimensionstr, datastr)
 
 def _split_cppqed_output(path, ev_handler, sv_handler):
     f = open(path)
@@ -137,7 +137,7 @@ def load_cppqed_sv(path):
     commentstr, datastr = buf.split("\n", 1)
     time = commentstr[2:commentstr.find(" ", 4)]
     ba = _blitz2numpy(datastr)
-    return StateVector(ba, float(time))
+    return statevector.StateVector(ba, float(time))
 
 def save_cppqed_sv(path, sv):
     f = open(path, "w")
