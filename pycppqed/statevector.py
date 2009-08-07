@@ -24,12 +24,15 @@ class StateVector(numpy.ndarray):
 
         * Any other argument that a numpy array can use.
     """
-    def __new__(cls, data, time=0, norm=False, **kwargs):
+    def __new__(cls, data, time=None, norm=False, **kwargs):
         array = numpy.array(data, **kwargs)
         if norm:
             array = normalize(array)
-        array = array.view(cls)
-        array.time = time
+        array = numpy.asarray(array).view(cls)
+        if time is not None:
+            array.time = time
+        elif hasattr(data, "time"):
+            array.time = data.time
         return array
 
     def __array_finalize__(self, obj):
@@ -37,6 +40,11 @@ class StateVector(numpy.ndarray):
         for dim in obj.shape:
             dimensions.append((0,dim-1))
         self.dimensions = tuple(dimensions)
+        if hasattr(obj, "time"):
+            self.time = obj.time
+        else:
+            self.time = 0
+        self.time = {}
     
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
@@ -53,7 +61,7 @@ class StateVector(numpy.ndarray):
         """
         return normalize(self)
 
-    def reduce(self, indices):
+    def reduce(self, indices, norm=True):
         """
         Calculate the reduced StateVector.
 
@@ -73,8 +81,12 @@ class StateVector(numpy.ndarray):
             a.sort()
             a.reverse()
         array = self
-        for i in a:
-            array = array.sum(axis=i).normalize()
+        if norm:
+            for i in a:
+                array = array.sum(axis=i).normalize()
+        else:
+            for i in a:
+                array = array.sum(axis=i)
         return array
 
     def reducesquare(self, indices):
@@ -84,6 +96,13 @@ class StateVector(numpy.ndarray):
             a = _sorted_list(indices)
         return numpy.tensordot(self, self.conjugate(), (a,a))
 
+    def fft(self, axis=0):
+        f = numpy.fft
+        N = self.shape[axis]
+        array = f.fftshift(f.ifft(f.ifftshift(self, axes=(axis,)), axis=axis),
+                           axes=(axis,)) * N/numpy.sqrt(2*numpy.pi)
+        return StateVector(array, time=self.time)
+
     def expvalue(self, baseexpvalues, indices=None):
         if indices is not None:    
             A = self.reducesquare(_conjugate_indices(indices, self.ndim))
@@ -92,6 +111,8 @@ class StateVector(numpy.ndarray):
         return [(A*exp).sum() for exp in baseexpvalues]
 
     def diagexpvalue(self, baseexpvalues, indices=None):
+        if isinstance(indices, int):
+            indices = (indices,)
         A = self*self.conjugate()
         if indices is not None:
             indices = _sorted_list(_conjugate_indices(indices, self.ndim),
@@ -152,7 +173,7 @@ class StateVectorTrajectory(numpy.ndarray):
         array.time = numpy.array([sv.time for sv in data])
         svs = [None]*array.shape[0]
         for i, entry in enumerate(array):
-            svs[i] = StateVector(entry, copy=False)
+            svs[i] = StateVector(entry, time=array.time[i], copy=False)
         array.statevectors = svs
         return array
 
@@ -164,6 +185,24 @@ class StateVectorTrajectory(numpy.ndarray):
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, _dim2str(self.dimensions))
+
+    def reduce(self, indices, norm=True):
+        svs = [None]*self.shape[0]
+        for i, sv in enumerate(self.statevectors):
+            svs[i] = sv.reduce(indices, norm=True)
+        return StateVectorTrajectory(svs)
+
+    def fft(self, axis=0):
+        svs = [None]*self.shape[0]
+        for i, sv in enumerate(self.statevectors):
+            svs[i] = sv.fft(axis) 
+        return StateVectorTrajectory(svs)
+
+    def normalize(self):
+        svs = [None]*self.shape[0]
+        for i, sv in enumerate(self.statevectors):
+            svs[i] = sv.normalize()
+        return StateVectorTrajectory(svs)
 
     def expvalue(self, baseexpvalues, indices=None, titles=None,
                        subsystems=None):
