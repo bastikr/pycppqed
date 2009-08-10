@@ -126,3 +126,32 @@ class ExpectationValuesTrajectory:
         if show:
             pylab.show()
 
+
+class ExpectationValueTrajectory(numpy.ndarray):
+    r"""
+    A class representing an expectation value to different points of time.
+    """
+    def __new__(cls, data, time=None, **kwargs):
+        array = numpy.array(data, **kwargs).view(cls)
+        if time is not None:
+            array.time = time
+        else:
+            array.time = getattr(data, "time", None)
+
+    def __array_finalize__(self, obj):
+        self.time = getattr(obj, "time", None)
+
+
+class ExpectationValueTrajectoryCollection(numpy.ndarray):
+    r"""
+    A class representing several expectation values at different points of time.
+    """
+    def __new__(cls, data, time=None, **kwargs):
+        if isinstance(data, ExpectationValueTrajectory):
+            array = numpy.asarray(data).reshape((1,-1)).view(cls)
+        else:
+            array = numpy.array(data, **kwargs).view(cls)
+        if time is not None:
+            array.time = time
+
+
