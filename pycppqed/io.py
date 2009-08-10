@@ -121,11 +121,13 @@ def load_cppqed_output(path):
     titles = []
     subsystems = utils.OrderedDict()
     for i, subs in enumerate(desc.expvalues.subsystems):
-        keys = subs.entrys.keys()
-        subsystems["S" + str(i) + "_" + subs.name] = (keys[0], keys[-1])
+        #keys = subs.entrys.keys()
+        #subsystems["S" + str(i) + "_" + subs.name] = (keys[0], keys[-1])
         titles.extend(subs.entrys.values())
-    evstraj = expvalues.ExpectationValuesTrajectory(evs,
-                            titles=titles, subsystems=subsystems)
+    evs = numpy.array(evs).swapaxes(0,1)
+    time = evs[0,:]
+    evstraj = expvalues.ExpectationValueTrajectoryCollection(evs,
+                            time=time, titles=titles, copy=False)
     svstraj = statevector.StateVectorTrajectory(svs)
     return evstraj, svstraj
 

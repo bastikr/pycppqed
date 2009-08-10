@@ -33,7 +33,7 @@ class StateVector(numpy.ndarray):
             (Default is False)
         
         * Any other argument that a numpy array takes. E.g. ``copy=False`` can
-          be used so that the Statevector shares the data storage with the
+          be used so that the StateVector shares the data storage with the
           given numpy array.
 
     Most useful is maybe the tensor product which lets you easily calculate
@@ -457,12 +457,12 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         evs = self.map(lambda sv:sv.expvalue(operator, indices, multi), False)
         if not multi:
-            evs = numpy.array(evs).reshape((-1,1))
-        return expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
-                                    subsystems) 
+            evs = expvalues.ExpectationValueTrajectory(evs, titles)
+        evs = numpy.array(evs).swapaxes(0,1)
+        return expvalues.ExpectationValueTrajectoryCollection(
+                            evs, self.time, titles, copy=False) 
 
-    def diagexpvalue(self, operator, indices=None, multi=False, titles=None,
-                     subsystems=None):
+    def diagexpvalue(self, operator, indices=None, multi=False, titles=None):
         """
         Calculate the expectation value of the diagonal operator for all SVs.
 
@@ -473,9 +473,10 @@ class StateVectorTrajectory(numpy.ndarray):
         evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, multi),
                        False)
         if not multi:
-            evs = numpy.array(evs).reshape((-1,1))
-        return expvalues.ExpectationValuesTrajectory(evs, self.time, titles,
-                            subsystems)
+            return expvalues.ExpectationValueTrajectory(evs, self.time, titles)
+        evs = numpy.array(evs).swapaxes(0,1)
+        return expvalues.ExpectationValueTrajectoryCollection(
+                            evs, self.time, titles, copy=False)
         
 
 def norm(array):

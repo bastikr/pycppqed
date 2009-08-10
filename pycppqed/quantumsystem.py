@@ -34,14 +34,14 @@ class Particle:
         if k:
             K = numpy.arange(-k_dim/2, k_dim/2)
             ev = sv.diagexpvalue((K, K**2), indices=number, multi=True)
-            evs["ev_k"] = ev_k = ev.data[:,0]
-            evs["var_k"] = ev.data[:,1] - ev_k**2
+            evs["ev_k"] = ev_k = ev.evtrajectories[0]
+            evs["var_k"] = ev.evtrajectories[1] - ev_k**2
         if x:
             sv_x = sv.fft(number)
             X = numpy.linspace(-numpy.pi, numpy.pi, k_dim)
             ev = sv_x.diagexpvalue((X, X**2), indices=number, multi=True)
-            evs["ev_x"] = ev_x = ev.data[:,0]*2*numpy.pi/k_dim
-            evs["var_x"] = ev.data[:,1]*2*numpy.pi/k_dim - ev_x**2
+            evs["ev_x"] = ev_x = ev.evtrajectories[0]*2*numpy.pi/k_dim
+            evs["var_x"] = ev.evtrajectories[1]*2*numpy.pi/k_dim - ev_x**2
         return evs
 
 
@@ -58,8 +58,8 @@ class Mode:
         if n:
             m = numpy.arange(m_dim)
             ev = sv.diagexpvalue((m, m**2), indices=number, multi=True)
-            evs["ev_n"] = ev_n = ev.data[:,0]
-            evs["var_n"] = ev.data[:,1] - ev_n**2
+            evs["ev_n"] = ev_n = ev.evtrajectories[0]
+            evs["var_n"] = ev.evtrajectories[1] - ev_n**2
         if a:
             m_a = numpy.diag(numpy.sqrt(numpy.arange(1, m_dim)), -1)
             evs["ev_a"] = sv.expvalue(m_a, indices=number)
