@@ -49,7 +49,7 @@ class ExpectationValueTrajectory(numpy.ndarray):
         return "%s('%s')" % (clsname, title)
 
 
-class ExpectationValueTrajectoryCollection(numpy.ndarray):
+class ExpectationValueCollection(numpy.ndarray):
     r"""
     A class representing several expectation values at different points of time.
 

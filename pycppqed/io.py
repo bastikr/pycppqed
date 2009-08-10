@@ -126,7 +126,7 @@ def load_cppqed_output(path):
         titles.extend(subs.entrys.values())
     evs = numpy.array(evs).swapaxes(0,1)
     time = evs[0,:]
-    evstraj = expvalues.ExpectationValueTrajectoryCollection(evs,
+    evstraj = expvalues.ExpectationValueCollection(evs,
                             time=time, titles=titles, copy=False)
     svstraj = statevector.StateVectorTrajectory(svs)
     return evstraj, svstraj

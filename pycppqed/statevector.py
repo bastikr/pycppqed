@@ -204,7 +204,7 @@ class StateVector(numpy.ndarray):
                            axes=(axis,)) * N/numpy.sqrt(2*numpy.pi)
         return StateVector(array, time=self.time)
 
-    def expvalue(self, operator, indices=None, multi=False):
+    def expvalue(self, operator, indices=None, title=None, multi=False):
         r"""
         Calculate the expectation value of the given operator.
 
@@ -250,11 +250,12 @@ class StateVector(numpy.ndarray):
         else:
             A = self^self.conjugate()
         if multi:
-            return [(A*op).sum() for op in operator]
+            evs = [(A*op).sum() for op in operator]
+            return expvalues.ExpectationValueCollection(evs, self.time, title)
         else:
             return (A*operator).sum()
 
-    def diagexpvalue(self, operator, indices=None, multi=False):
+    def diagexpvalue(self, operator, indices=None, title=None, multi=False):
         r"""
         Calculate the expectation value for the given diagonal operator.
 
@@ -301,7 +302,8 @@ class StateVector(numpy.ndarray):
             for index in indices:
                 A = A.sum(index)
         if multi:
-            return [(A*op).sum() for op in operator]
+            evs = [(A*op).sum() for op in operator]
+            return expvalues.ExpectationValueCollection(evs, self.time, title)
         else:
             return (A*operator).sum()
 
@@ -446,8 +448,7 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         return self.map(lambda sv:sv.fft(axis))
 
-    def expvalue(self, operator, indices=None, multi=False, titles=None,
-                 subsystems=None):
+    def expvalue(self, operator, indices=None, multi=False, titles=None):
         """
         Calculate the expectation value of the operator for all StateVectors.
 
@@ -455,12 +456,13 @@ class StateVectorTrajectory(numpy.ndarray):
 
         See also: :meth:`StateVector.expvalue`
         """
-        evs = self.map(lambda sv:sv.expvalue(operator, indices, multi), False)
+        evs = self.map(lambda sv:sv.expvalue(operator, indices, multi=multi),
+                       False)
         if not multi:
-            evs = expvalues.ExpectationValueTrajectory(evs, titles)
+            return expvalues.ExpectationValueTrajectory(evs, self.time, titles)
         evs = numpy.array(evs).swapaxes(0,1)
-        return expvalues.ExpectationValueTrajectoryCollection(
-                            evs, self.time, titles, copy=False) 
+        return expvalues.ExpectationValueCollection(
+                            evs, self.time, titles, copy=False)
 
     def diagexpvalue(self, operator, indices=None, multi=False, titles=None):
         """
@@ -470,12 +472,12 @@ class StateVectorTrajectory(numpy.ndarray):
 
         See also: :meth:`StateVector.diagexpvalue`
         """
-        evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, multi),
-                       False)
+        evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, 
+                            multi=multi), False)
         if not multi:
             return expvalues.ExpectationValueTrajectory(evs, self.time, titles)
         evs = numpy.array(evs).swapaxes(0,1)
-        return expvalues.ExpectationValueTrajectoryCollection(
+        return expvalues.ExpectationValueCollection(
                             evs, self.time, titles, copy=False)
         
 

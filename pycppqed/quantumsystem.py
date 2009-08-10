@@ -1,6 +1,29 @@
 import numpy
+import expvalues
 
 class QuantumSystem:
+    """
+    A class representing a combined quantum system.
+
+    *Usage*
+        >>> sv1 = StateVector((1,2,1), norm=True)
+        >>> sv2 = StateVector((4,2,1,0,0), norm = True)
+        >>> sv = sv1 ^ sv2
+        >>> qs = QuantumSystem(sv, Particle, Mode)
+        >>> evs = qs.evs()
+        >>> print evs[0]
+        ExpectationValueCollection('<k>', 'Var(k)', '<x>', 'Var(x)')
+        >>> print repr(evs[1])
+        ExpectationValueCollection('<n>', 'Var(n)', '<a>')
+
+    *Arguments*
+        * *statevector*
+            A StateVector or StateVectorTrajectory describing this system.
+
+        * */*args*
+            Elementary quantum systems which together build this combined
+            QuantumSystem.
+    """
     def __init__(self, statevector, *args):
         ndim = len(args)
         assert len(statevector.dimensions) == ndim,\
@@ -22,6 +45,9 @@ class QuantumSystem:
 
 
 class Particle:
+    """
+    A class representing a single particle.
+    """
     def __init__(self, statevector, number=0):
         self.statevector = statevector
         self.number = number
@@ -29,23 +55,35 @@ class Particle:
     def evs(self, k=True, x=True):
         number = self.number
         sv = self.statevector
-        evs = {}
+        evs = []
+        titles = []
         k_dim = self.statevector.dimensions[number]
         if k:
             K = numpy.arange(-k_dim/2, k_dim/2)
             ev = sv.diagexpvalue((K, K**2), indices=number, multi=True)
-            evs["ev_k"] = ev_k = ev.evtrajectories[0]
-            evs["var_k"] = ev.evtrajectories[1] - ev_k**2
+            ev_k = ev[0]
+            var_k = ev[1] - ev_k**2
+            evs.append(ev_k)
+            titles.append("<k>")
+            evs.append(var_k)
+            titles.append("Var(k)")
         if x:
             sv_x = sv.fft(number)
             X = numpy.linspace(-numpy.pi, numpy.pi, k_dim)
             ev = sv_x.diagexpvalue((X, X**2), indices=number, multi=True)
-            evs["ev_x"] = ev_x = ev.evtrajectories[0]*2*numpy.pi/k_dim
-            evs["var_x"] = ev.evtrajectories[1]*2*numpy.pi/k_dim - ev_x**2
-        return evs
+            ev_x = ev[0]*2*numpy.pi/k_dim
+            var_x = ev[1]*2*numpy.pi/k_dim - ev_x**2
+            evs.append(ev_x)
+            titles.append("<x>")
+            evs.append(var_x)
+            titles.append("Var(x)")
+        return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 
 class Mode:
+    """
+    A class representing a single mode.
+    """
     def __init__(self, statevector, number=0):
         self.statevector = statevector
         self.number = number
@@ -53,17 +91,23 @@ class Mode:
     def evs(self, n=True, a=True):
         number = self.number
         sv = self.statevector
-        evs = {}
+        evs = []
+        titles = []
         m_dim = self.statevector.dimensions[number]
         if n:
             m = numpy.arange(m_dim)
             ev = sv.diagexpvalue((m, m**2), indices=number, multi=True)
-            evs["ev_n"] = ev_n = ev.evtrajectories[0]
-            evs["var_n"] = ev.evtrajectories[1] - ev_n**2
+            ev_n = ev[0]
+            var_n = ev[1] - ev_n**2
+            evs.append(ev_n)
+            titles.append("<n>")
+            evs.append(var_n)
+            titles.append("Var(n)")
         if a:
             m_a = numpy.diag(numpy.sqrt(numpy.arange(1, m_dim)), -1)
-            evs["ev_a"] = sv.expvalue(m_a, indices=number)
-        return evs
+            evs.append(sv.expvalue(m_a, indices=number))
+            titles.append("<a>")
+        return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 SYSTEMS = (
     Particle,
