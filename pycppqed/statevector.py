@@ -7,36 +7,49 @@ except NameError:
 
 class StateVector(numpy.ndarray):
     r"""
-    A class representing a quantum mechanical state vector.
+    A class representing a quantum mechanical state vector in a specific basis.
 
-    **Usage**
+    *Usage*
         >>> sv = StateVector((1, 3, 7, 2), time=0.2, norm=True)
         >>> sv = StateVector(numpy.arange(12).reshape(3,4))
+        >>> print sv
+        StateVector(3 x 4)
+        >>> print repr(sv)
+        StateVector([[ 0,  1,  2,  3],
+               [ 4,  5,  6,  7],
+               [ 8,  9, 10, 11]])
 
-    **Arguments**
+    *Arguments*
         * *data*
-            Anything a numpy array can use, e.g. a nested tuple or another
-            numpy array.
+            Anything that can be used to create a numpy array, e.g. a nested
+            tuple or another numpy array.
 
         * *time*
-            A number giving the point of time when this state vector was
+            A number defining the point of time when this state vector was
             reached. (Default is 0)
 
         * *norm*
             If set True the StateVector will be automatically normalized.
+            (Default is False)
         
-        * Any other argument that a numpy array can use. E.g. copy=False can
-          be used so that the Statevector uses the same data as the given
-          numpy array.
+        * Any other argument that a numpy array takes. E.g. ``copy=False`` can
+          be used so that the Statevector shares the data storage with the
+          given numpy array.
 
     Most useful is maybe the tensor product which lets you easily calculate
     state vectors for combined systems::
         
-        >>> sv1 = StateVector((1,2,3), norm=True)
-        >>> sv2 = StateVector((2,0,0), norm=True)
+        >>> sv1 = StateVector((1,2,3))
+        >>> sv2 = StateVector((3,4,0), norm=True)
         >>> sv = sv1 ^ sv2
+        >>> print sv
+        StateVector(3 x 3)
+        >>> print repr(sv)
+        StateVector([[ 0.6,  0.8,  0. ],
+               [ 1.2,  1.6,  0. ],
+               [ 1.8,  2.4,  0. ]])
 
-    The tensor product is abbrevated by the "^" operator. But be aware that
+    The tensor product is abbreviated by the "^" operator. But be aware that
     this operator follows the built-in operator precedence - that means "+", 
     "*" etc. have **higher** precedence!
     """
@@ -53,36 +66,33 @@ class StateVector(numpy.ndarray):
 
     def __array_finalize__(self, obj):
         self.dimensions = obj.shape
-        if hasattr(obj, "time"):
-            self.time = obj.time
-        else:
-            self.time = 0
+        self.time = getattr(obj, "time", 0)
     
     def __str__(self):
         clsname = self.__class__.__name__
         return "%s(%s)" % (clsname, " x ".join(map(str, self.dimensions)))
 
     def norm(self):
-        """
+        r"""
         Calculate the norm of the StateVector.
 
-        **Usage**
+        *Usage*
             >>> sv = StateVector((1,2,3,4,5), norm=True)
-            >>> sv.norm()
+            >>> print sv.norm()
             1.0
         """
         return norm(self)
 
     def normalize(self):
-        """
+        r"""
         Return a normalized StateVector.
 
-        **Usage**
+        *Usage*
             >>> sv = StateVector((1,2,1,3,1))
-            >>> sv.norm()
+            >>> print sv.norm()
             4.0
             >>> nsv = sv.normalize()
-            >>> nsv.norm()
+            >>> print nsv.norm()
             1.0
         """
         return normalize(self)
@@ -91,14 +101,15 @@ class StateVector(numpy.ndarray):
         r"""
         Return a StateVector where the given indices are reduced.
 
-        **Usage**
+        *Usage*
             >>> rsv = sv.reduce(1)
             >>> rsv = sv.reduce((1,2))
 
-        **Arguments**
+        *Arguments*
             * *indices*
                 An integer or a list of integers specifying over which
-                subsystems should be summated.
+                subspaces should be summated.
+
             * *norm*
                 If set True the resulting StateVector will be renormalized.
 
@@ -107,20 +118,21 @@ class StateVector(numpy.ndarray):
 
             >>> sv1 = StateVector((1,2), norm=True)
             >>> sv2 = StateVector((1,2,3), norm=True)
-            >>> sv3 = StateVector((1,2,3,4), norm=True)
-            >>> sv4 = StateVector((1,2,3,4,5), norm=True)
+            >>> sv3 = StateVector((1,2,3,4,5), norm=True)
+            >>> sv4 = StateVector((1,2,3,4,5,6), norm=True)
             >>> sv = sv1^sv2^sv3^sv4
             >>> print sv
-            StateVector((0,1) x (0,2) x (0,3) x (0,4))
+            StateVector(2 x 3 x 5 x 6)
             >>> print sv.reduce((2,3))
-            StateVector((0,1) x (0,2))
+            StateVector(2 x 3)
 
         This is mathematically equivalent to:
 
-        .. math::
+            .. math::
 
-            \Psi_{\alpha, \beta} = \sum_{\gamma,\delta}{\Psi_{\alpha,\beta,
-                                                              \gamma,\delta}}
+                \Psi_{\alpha \beta} = \frac
+                  {\sum_{\gamma \delta} \Psi_{\alpha \beta \gamma \delta}}
+                  {\| \sum_{\gamma \delta} \Psi_{\alpha \beta \gamma \delta} \|}
 
         Reducing is an easy way to find out how subspaces of a high rank
         state vectors behave. Don't use reduced StateVectors for calculating
@@ -143,45 +155,46 @@ class StateVector(numpy.ndarray):
         r"""
         Return a reduced Psi-square tensor.
         
-        **Usage**
+        *Usage*
             >>> sv1 = StateVector((0,1,2,1,0), norm=True)
             >>> sv2 = StateVector((1,0,1), norm=True)
             >>> sv = sv1^sv2
             >>> sqtensor = sv.reducesquare(1)
 
-        **Arguments**
+        *Arguments*
             * *indices*
                 An integer or a list of integers specifying over which
-                subsystems should be summated.
+                subsystems should be summed up.
 
         This method calculates the following quantity (simplified for rank 2
         state vectors):
 
-        .. math::
+            .. math::
 
-            \sum_{\beta}{\Psi_{\alpha_1,\beta}^{*}*\Psi_{\alpha_2,\beta}}
+                w_{\alpha_1 \alpha_2} = \sum_\beta \Psi_{\alpha_1 \beta}^*
+                                        \Psi_{\alpha_2 \beta}
 
         Where :math:`\beta` is the reduced index.
 
         This quantity is useful to calculate expectation values in the
-        corresponding subsystems.
+        corresponding subspaces.
         """
         if isinstance(indices, int):
             a = (indices,)
         else:
-            a = _sorted_list(indices)
+            a = _sorted_list(indices, True)
         return numpy.tensordot(self, self.conjugate(), (a,a))
 
     def fft(self, axis=0):
-        """
+        r"""
         Return a StateVector where the given axis is Fourier transformed.
 
-        **Usage**
+        *Usage*
             >>> sv = StateVector((0,1,1.7,2,1.7,1,0), norm=True)
             >>> print sv.fft()
-            StateVector((0,6))
+            StateVector(7)
 
-        **Arguments**
+        *Arguments*
             * *axis*
                 Axis over which the fft is done. (Default is 0)
         """
@@ -192,10 +205,10 @@ class StateVector(numpy.ndarray):
         return StateVector(array, time=self.time)
 
     def expvalue(self, operator, indices=None, multi=False):
-        """
+        r"""
         Calculate the expectation value of the given operator.
 
-        **Usage**
+        *Usage*
             >>> a = numpy.diag(numpy.ones(3), -1)
             >>> print a
             array([[ 0.,  0.,  0.,  0.],
@@ -206,7 +219,7 @@ class StateVector(numpy.ndarray):
             >>> print sv.expvalue(a)
             0.6
 
-        **Arguments**
+        *Arguments*
             * *operator*
                 A tensor representing an arbitrary operator in the
                 basis of the StateVector.
@@ -222,9 +235,15 @@ class StateVector(numpy.ndarray):
         Expectation values for combined systems are calculated in the following
         way (Assuming the operator only acts on first subsystem):
 
-        .. math::
-            
-            #TODO: write mathematical expression for expectation values.
+            .. math::
+
+                \langle \Psi | \hat A (k) | \Psi \rangle =
+                    \sum_{k_1 k_2} \langle k_1 | \hat A (k) | k_2 \rangle
+                    \sum_m \Psi_{k_1 m}^* \Psi_{k_2 m}
+
+        The second sum is exactly what :meth:`reducesquare` does while the
+        first expression is the matrix representation of the given operator
+        in the same basis as the StateVector.
         """
         if indices is not None:    
             A = self.reducesquare(_conjugate_indices(indices, self.ndim))
@@ -236,10 +255,10 @@ class StateVector(numpy.ndarray):
             return (A*operator).sum()
 
     def diagexpvalue(self, operator, indices=None, multi=False):
-        """
+        r"""
         Calculate the expectation value for the given diagonal operator.
 
-        **Usage**
+        *Usage*
             >>> a = numpy.arange(4)
             >>> print a
             array([ 0.,  1.,  2.,  3.])
@@ -247,7 +266,7 @@ class StateVector(numpy.ndarray):
             >>> print sv.diagexpvalue(a)
             2.45454545455
 
-        **Arguments**
+        *Arguments*
             * *operator*
                 The diagonal elements of a tensor representing an arbitrary
                 diagonal operator in the basis of the StateVector.
@@ -260,11 +279,18 @@ class StateVector(numpy.ndarray):
                 If multi is True it is assumed that a list of operators is
                 given. (Default is False)
 
-        
-        .. math::
-            
-            #TODO: Write mathematical expression for diagonal expectation
-                   values.
+        Expectation values for combined systems are calculated in the following
+        way (Assuming the operator only acts on first subsystem):
+
+            .. math::
+
+                \langle \Psi | \hat A (k) | \Psi \rangle =
+                    \sum_k \langle k | \hat A (k) | k \rangle
+                    \sum_m \Psi_{k m}^* \Psi_{k m}
+
+        Other than the general :meth:`expvalue` method :meth:`diagexpvalue`
+        only works for diagonal operators and only needs the diagonal elements
+        of the matrix representation.
         """
         if isinstance(indices, int):
             indices = (indices,)
@@ -280,10 +306,10 @@ class StateVector(numpy.ndarray):
             return (A*operator).sum()
 
     def outer(self, array):
-        """
+        r"""
         Return the outer product between this and the given StateVector.
         
-        **Usage**
+        *Usage*
             >>> sv = StateVector((0,1,2), norm=True)
             >>> print repr(sv.outer(StateVector((3,4), norm=True)))
             StateVector([[ 0.        ,  0.        ],
@@ -294,13 +320,14 @@ class StateVector(numpy.ndarray):
                    [ 1.34164079,  1.78885438],
                    [ 2.68328157,  3.57770876]])
 
-        **Arguments**
+        *Arguments*
             * *array*
                 Some kind of array (E.g. StateVector, numpy.array, list, ...).
 
-        As abreviation you can write "sv1^sv2" instead of sv1.outer(sv2). But
-        be aware that the operator precedence of "^" follows the python rules -
-        that means "sv1 ^ sv2 + sv3" is the same as "sv1 ^ (sv2 + sv3)"!
+        As abbreviation ``sv1^sv2`` can be written instead of
+        ``sv1.outer(sv2)``. But be aware that the operator precedence of ``^``
+        follows the python rules - that means ``sv1 ^ sv2 + sv3`` is the same
+        as ``sv1 ^ (sv2 + sv3)``.
         """
         return StateVector(numpy.multiply.outer(self, array))
 
@@ -368,7 +395,10 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         Apply the given function to every single StateVector.
 
-        **Arguments**
+        *Usage*
+            >>> norm = svt.map(lambda sv:sv.norm())
+
+        *Arguments*
             * *func*
                 Function that takes a StateVector as argument.
 
@@ -387,24 +417,32 @@ class StateVectorTrajectory(numpy.ndarray):
     def norm(self):
         """
         Return a list of norms for every single StateVector.
+
+        See also: :meth:`StateVector.norm`
         """
         return self.map(lambda sv:sv.norm(), False)
 
     def normalize(self):
         """
         Return a StateVectorTrajectory where all StateVectors are normalized.
+
+        See also: :meth:`StateVector.normalize`
         """
         return self.map(lambda sv:sv.normalize())
 
     def reduce(self, indices, norm=True):
         """
         Return a StateVectorTrajectory where all StateVectors are reduced.
+
+        See also: :meth:`StateVector.reduce`
         """
         return self.map(lambda sv:sv.reduce(indices, norm=norm))
 
     def fft(self, axis=0):
         """
         Return a StateVectorTrajectory whith Fourier transformed StateVectors.
+
+        See also: :meth:`StateVector.fft`
         """
         return self.map(lambda sv:sv.fft(axis))
 
@@ -414,6 +452,8 @@ class StateVectorTrajectory(numpy.ndarray):
         Calculate the expectation value of the operator for all StateVectors.
 
         Returns an ExpectationValuesTrajectory instance.
+
+        See also: :meth:`StateVector.expvalue`
         """
         evs = self.map(lambda sv:sv.expvalue(operator, indices, multi), False)
         if not multi:
@@ -427,6 +467,8 @@ class StateVectorTrajectory(numpy.ndarray):
         Calculate the expectation value of the diagonal operator for all SVs.
 
         Returns an ExpectationValuesTrajectory instance.
+
+        See also: :meth:`StateVector.diagexpvalue`
         """
         evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, multi),
                        False)
