@@ -12,7 +12,7 @@ static PyObject *parse(PyObject *self, PyObject *args){
     int dims[1];
     dims[0] = length;
     PyArrayObject *array = (PyArrayObject *)
-        PyArray_FromDims(1, dims,PyArray_CDOUBLE);
+        PyArray_FromDims(1, dims, PyArray_CDOUBLE);
     
     // Create pointer to data.
     double *data;
