@@ -1,5 +1,6 @@
 import numpy
 import expvalues
+import visualization
 try:
     set()
 except NameError:
@@ -335,36 +336,7 @@ class StateVector(numpy.ndarray):
 
     __xor__ = outer
 
-    def plot(self, x=None, show=True, **kwargs):
-        import pylab
-        dims = len(self.shape)
-        if x is None:
-            x = numpy.arange(self.shape[0])
-        if dims == 1:
-            pylab.subplot(311)
-            pylab.plot(x, numpy.real(self), **kwargs)
-            pylab.title("Real part")
-            pylab.subplot(312)
-            pylab.plot(x, numpy.imag(self), **kwargs)
-            pylab.title("Imaginary part")
-            pylab.subplot(313)
-            pylab.plot(x, self*self.conjugate(), **kwargs)
-            pylab.title("Abs square")
-        elif dims == 2:
-            pylab.subplot(311)
-            pylab.imshow(numpy.real(self), interpolation="nearest", **kwargs)
-            pylab.title("Real part")
-            pylab.subplot(312)
-            pylab.imshow(numpy.real(self), interpolation="nearest", **kwargs)
-            pylab.title("Imaginary part")
-            pylab.subplot(313)
-            pylab.imshow(self*self.conjugate(), interpolation="nearest",
-                         **kwargs)
-            pylab.title("Abs square")
-        else:
-            raise TypeError("Too many dimensions to plot!")
-        if show:
-            pylab.show()
+    plot = visualization.plot_statevector
 
 
 class StateVectorTrajectory(numpy.ndarray):
