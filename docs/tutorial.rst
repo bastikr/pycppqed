@@ -12,16 +12,15 @@ This document gives some basic instructions on how to use pycppqed.
 Introduction
 ============
 
-PyCppQED is a python library that helps working with `CppQED`_ - a framework
+PyCppQED is a python library that helps working with `C++QED`_ - a framework
 simulating open quantum dynamics written in C++. Since C++ is not the favorite
 programming language of everyone, PyCppQED extends this framework with useful
 functionality:
 
  * Import of C++QED output files into python.
- * Conversion C++QED output files to `Matlab`_ *.mat* files.
+ * Export of this data as `Matlab`_ *.mat* files.
  * Fast and easy visualization of imported data.
- * Generating arbitrary initial condition vectors for C++QED. (Not yet
-   implemented)
+ * Generating arbitrary initial condition vectors for C++QED. 
 
 
 Installation
@@ -56,14 +55,14 @@ With PyCppQED it's easy to extract the state vectors into own files and
 getting a standard C++QED output file.
 
 Every time you want to read/write something from/as a C++QED output file you
-will need the :module:`io` module. It has several functions to load, save 
-and convert C++QED output files. One of the of them is the
-:func:`split_cppqed_output` function::
+will need the :mod:`pycppqed.io` module. It has several functions to load,
+save  and convert C++QED output files. One of the of them is the
+:func:`pycppqed.io.split_cppqed` function::
 
-    >>> qed.io.split_cppqed_output("ring.dat", "newring")
+    >>> qed.io.split_cppqed("ring.dat", "newring.dat")
 
 This writes the standard output file to :file:`newring` and the state vectors
-into separate files named :file:`ring_time.sv` where :token:`time` is
+into separate files named :file:`ring_time.dat.sv` where :token:`time` is
 substituted by the time when this state vector was reached.
 
 
@@ -72,51 +71,44 @@ substituted by the time when this state vector was reached.
 Import C++QED output file into python
 -------------------------------------
 
-Again we use the io module, but now the function :func:`load_cppqed_output`::
+Again we use the io module, but now the function 
+:func:`pycppqed.io.load_cppqed`::
 
     >>> evs, svs = qed.io.load_cppqed_output("ring.dat")
 
 This returns two objects which represent the whole information stored
 in the C++QED output file:
 
- * A Trajectory instance which holds all generated expectation values.
+ * A :class:`pycppqed.expvalues.ExpectationValueCollection` instance which
+   holds all expectation values calculated by C++QED.
 
- * A list of state vectors stored in instances of the :class:`StateVector`
-   class.
-
-
-Convert C++QED output file into *.mat* file
--------------------------------------------
-
-..
-    If you want to use `Matlab`_ or `Octave`_ for further processing of the data
-    you can use PyCppQED to convert a C++QED output file into a *.mat* file.
-    Again, we have load the file like in 
-        
-        >>> reader = pycppqed.CppqedOutputReader("ring.dat")
-..
-    To convert the given file into a *.mat* file we can use the :meth:`savemat`
-    method::
-..
-        >>> reader.savemat("ring")
-..
-    This command will write the expectation values into a file named
-    :file:`ring.mat` and all state vectors together into a single file called
-    :file:`ring.sv.mat`. The state vectors in the second file are named
-    :obj:`sv_time` where :token:`time` is replaced by the time when the specific
-    state vector was reached (Dots in the time value are replaced by an
-    underscore).
-..
-    If you prefer to write every state vector into a separate file you can use the
-    :obj:`split` argument::
-..
-        >>> reader.savemat("ring", split=True)
-..
-    This will create multiple files for the state vectors named
-    :file:`ring_time.sv.mat` where time is replaced as usual.
+ * A :class:`pycppqed.statevector.StateVectorTrajectory` instance representing
+   the state vector at different points of time.
 
 
+Export python data as *.mat* file
+---------------------------------
 
+If you want to use `Matlab`_ or `Octave`_ for further processing of the data
+you can use PyCppQED to convert a C++QED output file into a *.mat* file.
+Again, we have load the file like in :ref:`import2python`. The obtained 
+objects (or only parts of it, or any other array ...) can be saved with
+the :meth:`scipy.io.savemat` function::
+
+    >>> import scipy.io
+    >>> scipy.io.savemat("out.mat", {"evs":evs, "svs":svs})
+
+This file can be used from `Matlab`_ and `Octave`_:
+
+.. code-block:: c
+
+    >>> load("out.mat")
+    >>> size(evs)
+    ans = 15   175
+    >>> size(svs)
+    ans = 9   64   10   10
+    
+    
 Visualization
 -------------
 
@@ -140,7 +132,7 @@ Using Trajectory and StateVector classes for further calculations
 -----------------------------------------------------------------
 
 
-.. _CppQED: http://sourceforge.net/projects/cppqed/
+.. _C++QED: http://sourceforge.net/projects/cppqed/
 .. _Matlab: http://www.mathworks.com/
 .. _Octave: http://www.gnu.org/software/octave/
 .. _matplotlib: http://matplotlib.sourceforge.net/

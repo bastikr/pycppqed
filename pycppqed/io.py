@@ -116,7 +116,8 @@ def load_cppqed(path):
         * *path*
             Path to a C++QED output file.
 
-    Returns an ExpectationValueCollection and a StateVectorTrajectory.
+    Returns an :class:`pycppqed.expvalues.ExpectationValueCollection` and a 
+    :class:`pycppqed.statevector.StateVectorTrajectory`.
     """
     # Define handlers for state vector strings and expectation values strings.
     evs = [] # Expectation values
@@ -212,7 +213,7 @@ def split_cppqed(readpath, writepath):
 
     The standard part of the C++QED output file is saved to the given path,
     while the state vectors are saved to the same directory with the
-    naming convention "{path}_{time}.sv".
+    naming convention ``{path}_{time}.sv``.
     """
     evs = [] # Expectation values
     def sv_handler(svstr):

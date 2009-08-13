@@ -9,10 +9,11 @@ This document lists all classes and functions implemented in PyCppQED.
     :backlinks: top
 
 
-:mod:`statevector`
-==================
+:mod:`pycppqed.statevector`
+===========================
 
 .. automodule:: pycppqed.statevector
+    :show-inheritance:
     :members:
     :undoc-members:
 
@@ -29,6 +30,14 @@ This document lists all classes and functions implemented in PyCppQED.
 ==================
 
 .. automodule:: pycppqed.io
+    :members:
+    :undoc-members:
+
+
+:mod:`pycppqed.quantumsystem`
+=============================
+
+.. automodule:: pycppqed.quantumsystem
     :members:
     :undoc-members:
 

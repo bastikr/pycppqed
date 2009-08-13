@@ -27,7 +27,7 @@ def gaussian(x0=0, k0=0, sigma=0.3, fin=6):
 
         .. math::
             
-            \Psi(x) = (frac {1} {2 \pi})^{1/4} *
+            \Psi(x) = \frac {1} {\sqrt[4]{2 \pi}} *
                             e^{-\frac {x^2} {4*{\Delta x}^2}}
     """
     N = 2**fin
