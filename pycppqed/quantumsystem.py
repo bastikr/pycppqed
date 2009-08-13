@@ -35,12 +35,12 @@ class QuantumSystem:
             else:
                 raise ValueError("Argument has to be a System class.")
 
-    def evs(self, subsystems=None):
+    def expvalues(self, subsystems=None):
         if subsystems is None:
             subsystems = range(len(self.subsystems))
         evs = [None]*len(subsystems)
         for n, s in enumerate(subsystems):
-            evs[n] = self.subsystems[s].evs()
+            evs[n] = self.subsystems[s].expvalues()
         return evs
 
 
@@ -52,7 +52,7 @@ class Particle:
         self.statevector = statevector
         self.number = number
 
-    def evs(self, k=True, x=True):
+    def expvalues(self, k=True, x=True):
         number = self.number
         sv = self.statevector
         evs = []
@@ -88,7 +88,7 @@ class Mode:
         self.statevector = statevector
         self.number = number
 
-    def evs(self, n=True, a=True):
+    def expvalues(self, n=True, a=True):
         number = self.number
         sv = self.statevector
         evs = []
@@ -108,6 +108,7 @@ class Mode:
             evs.append(sv.expvalue(m_a, indices=number))
             titles.append("<a>")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
+
 
 SYSTEMS = (
     Particle,
