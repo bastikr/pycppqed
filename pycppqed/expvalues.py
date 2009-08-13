@@ -1,4 +1,6 @@
 import numpy
+import utils
+import visualization
 
 class ExpectationValueTrajectory(numpy.ndarray):
     r"""
@@ -66,15 +68,18 @@ class ExpectationValueCollection(numpy.ndarray):
         * *time*
             A 1d array or list specifying the points of time.
             
-        * *title*
-            The name of the expectation value. (Can be any unicode string)
+        * *titles*
+            The names of the expectation value. (Can be any unicode string)
+
+        * *subsystems*
+            Dictionary specifying subsystems. E.g. {"Mode1" : (1,3)}.
 
         * Any other argument that a numpy array can use for creation. E.g.
           ``copy = False`` can be used so that the 
           ExpectationValueTrajecoryCollection shares the data storage with the
           given numpy array.
     """
-    def __new__(cls, data, time=None, titles=None, **kwargs):
+    def __new__(cls, data, time=None, titles=None, subsystems=None, **kwargs):
         if isinstance(data, ExpectationValueTrajectory):
             array = numpy.asarray(data).reshape((1,-1)).view(cls)
             array.evtrajectories = (data,)
@@ -93,6 +98,12 @@ class ExpectationValueCollection(numpy.ndarray):
             array.time = time
         else:
             array.time = getattr(data, "time", None)
+        array.subsystems = utils.OrderedDict()
+        if subsystems is not None:
+            for key, value in subsystems.iteritems():
+                array.subsystems[key] = cls(
+                        array[value[0]:value[1]:], array.time,
+                        array.titles[value[0]:value[1]:], copy=True)
         return array
 
     def __array_finalize__(self, obj):
@@ -117,4 +128,6 @@ class ExpectationValueCollection(numpy.ndarray):
     def __str__(self):
         clsname = self.__class__.__name__
         return "%s('%s')" % (clsname, "', '".join(self.titles))
+
+    plot = visualization.plot_expvaluecollection
 

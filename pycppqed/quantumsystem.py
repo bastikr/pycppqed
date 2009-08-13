@@ -1,5 +1,6 @@
 import numpy
 import expvalues
+import utils
 
 class QuantumSystem:
     """
@@ -20,7 +21,7 @@ class QuantumSystem:
         * *statevector*
             A StateVector or StateVectorTrajectory describing this system.
 
-        * */*args*
+        * *\*args*
             Elementary quantum systems which together build this combined
             QuantumSystem.
     """
@@ -38,10 +39,20 @@ class QuantumSystem:
     def expvalues(self, subsystems=None):
         if subsystems is None:
             subsystems = range(len(self.subsystems))
-        evs = [None]*len(subsystems)
+        evs = []
+        titles = []
+        subsys = utils.OrderedDict()
+        pos_start = 0
         for n, s in enumerate(subsystems):
-            evs[n] = self.subsystems[s].expvalues()
-        return evs
+            sub = self.subsystems[s]
+            ev = sub.expvalues()
+            evs.extend(ev.evtrajectories)
+            pos_end = len(evs)
+            titles.extend(ev.titles)
+            subsys["(%s)%s" % (n, sub.__class__.__name__)] = (pos_start,pos_end)
+            pos_start = pos_end
+        return expvalues.ExpectationValueCollection(evs, evs[0].time, titles,
+                                                    subsys)
 
 
 class Particle:
