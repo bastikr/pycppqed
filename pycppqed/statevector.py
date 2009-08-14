@@ -336,7 +336,7 @@ class StateVector(numpy.ndarray):
 
     __xor__ = outer
 
-    plot = visualization.plot_statevector
+    plot = visualization.statevector
 
 
 class StateVectorTrajectory(numpy.ndarray):

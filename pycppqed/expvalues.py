@@ -50,7 +50,7 @@ class ExpectationValueTrajectory(numpy.ndarray):
             title = self.title
         return "%s('%s')" % (clsname, title)
 
-    plot = visualization.plot_expvaluetraj
+    plot = visualization.expvaluetraj
 
 
 class ExpectationValueCollection(numpy.ndarray):
@@ -131,5 +131,5 @@ class ExpectationValueCollection(numpy.ndarray):
         clsname = self.__class__.__name__
         return "%s('%s')" % (clsname, "', '".join(self.titles))
 
-    plot = visualization.plot_expvaluecollection
+    plot = visualization.expvaluecollection
 

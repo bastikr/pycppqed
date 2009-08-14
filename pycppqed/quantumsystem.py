@@ -55,6 +55,10 @@ class QuantumSystem:
         return expvalues.ExpectationValueCollection(evs, evs[0].time, titles,
                                                     subsys)
 
+    def __str__(self):
+        clsname = self.__class__.__name__
+        return "%s(%s)" % (clsname, ", ".join(map(str, self.subsystems)))
+
 
 class Particle:
     """
@@ -91,6 +95,9 @@ class Particle:
             titles.append("Std(x)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class Mode:
     """
@@ -123,6 +130,9 @@ class Mode:
             evs.append(ev_a.imag)
             titles.append("Im(<a>)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 SYSTEMS = (

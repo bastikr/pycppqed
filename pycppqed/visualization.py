@@ -1,6 +1,6 @@
 import numpy
 
-def plot_statevector(sv, x=None, show=True, **kwargs):
+def statevector(sv, x=None, show=True, **kwargs):
     import pylab
     dims = len(sv.shape)
     if x is None:
@@ -31,7 +31,7 @@ def plot_statevector(sv, x=None, show=True, **kwargs):
     if show:
         pylab.show()
 
-def plot_expvaluetraj(evs, show=True):
+def expvaluetraj(evs, show=True):
     import pylab
     pylab.plot(evs.time, evs)
     pylab.xlabel("time")
@@ -39,7 +39,7 @@ def plot_expvaluetraj(evs, show=True):
     if show:
         pylab.show()
 
-def plot_expvalues(evs, titles=None, show=True):
+def expvalues(evs, titles=None, show=True):
     import pylab
     length = len(evs)
     cols = (length+3) // 4
@@ -57,14 +57,12 @@ def plot_expvalues(evs, titles=None, show=True):
     if show:
         pylab.show()
 
-def plot_expvaluecollection(evc, show=True):
+def expvaluecollection(evc, show=True):
     if evc.subsystems:
         import pylab
-        i = 0
         for sysname, data in evc.subsystems.iteritems():
-            i += 1
-            pylab.figure(i)
-            plot_expvalues(data.evtrajectories, show=False)
+            pylab.figure()
+            expvalues(data.evtrajectories, show=False)
             if hasattr(pylab, "suptitle"): # For old versions not available.
                 pylab.suptitle(sysname)
                 pylab.gcf().canvas.set_window_title(sysname)
@@ -72,9 +70,9 @@ def plot_expvaluecollection(evc, show=True):
             pylab.show()
     else:
         titles = ["(%s) %s" % (i, title) for i, title in enumerate(evc.titles)]
-        plot_expvalues(evc.evtrajectories, titles, show=show)
+        expvalues(evc.evtrajectories, titles, show=show)
 
-def plot_compare_expvaluetraj(*args, **kwargs):
+def compare_expvaluetraj(*args, **kwargs):
     import pylab
     show = kwargs.pop("show", True)
     evs = []
@@ -90,7 +88,7 @@ def plot_compare_expvaluetraj(*args, **kwargs):
     if show:
         pylab.show()
 
-def plot_compare_expvaluesubsystem(subs1, subs2, show=True):
+def compare_expvaluesubsystem(subs1, subs2, show=True):
     import pylab
     t1 = subs1.evtrajectories
     t2 = subs2.evtrajectories
@@ -102,14 +100,14 @@ def plot_compare_expvaluesubsystem(subs1, subs2, show=True):
         pylab.xlabel("time")
         pylab.ylabel(t2[i].title)
 
-def plot_compare_expvaluecollections(coll1, coll2, show=True):
+def compare_expvaluecollections(coll1, coll2, show=True):
     import pylab
     s1 = coll1.subsystems
     s2 = coll2.subsystems
     assert len(s1) == len(s2)
     for i in range(len(s1)):
-        pylab.figure(i)
-        plot_compare_expvaluesubsystem(s1.values()[i], s2.values()[i],
+        pylab.figure()
+        compare_expvaluesubsystem(s1.values()[i], s2.values()[i],
                                         show=False)
         title = "%s vs. %s" % (s1.keys()[i], s2.keys()[i])
         if hasattr(pylab, "suptitle"): # For old versions not available.
