@@ -1,10 +1,11 @@
 import utils
+import quantumsystem
 
 class Description:
     """
     A class for working with the comment section of a C++QED output file.
 
-    **Arguments**
+    *Arguments*
         * *commentstr*
             A string following the style of the comment section of C++QED
             output files.
@@ -13,14 +14,24 @@ class Description:
         self.commentstr = commentstr
         sections = commentstr.split("\n\n")
         self.head = sections[0]
-        self.subsystems = sections[1:-1]
+        self.quantumsystem = QuantumSystem(sections[1:-1])
         self.expvalues = ExpectationValues(sections[-1])
 
-    def __str__(self):
-        return "%s\n\n%s\n\n%s" % (self.head, self.subsystems, self.datakey)
+    #def __str__(self):
+    #   return "%s\n\n%s\n\n%s" % (self.head, self.subsystems, self.datakey)
 
-class Subsystem:
-    pass
+QUANTUMSYSTEMS = {}
+for sys in quantumsystem.SYSTEMS:
+    QUANTUMSYSTEMS[sys.__name__] = sys
+
+class QuantumSystem:
+    def __init__(self, buf):
+        buf[0] = buf[0][buf[0].find("# Subsystem Nr."):]
+        self.subsystems = subs = []
+        for s in buf:
+            if not s.startswith("# Subsystem Nr."):
+                break
+            subs.append(eval(s.split("\n")[1].strip("# "), QUANTUMSYSTEMS))
 
 class ExpectationValues:
     """
@@ -32,8 +43,8 @@ class ExpectationValues:
         for sectionstr in sectionstrs:
             subsystems.append(ExpectationValuesSubsection(sectionstr))
 
-    def __str__(self):
-        return "Keys:\n  " + "\n  ".join(map(str, self.sections))
+    #def __str__(self):
+    #    return "Keys:\n  " + "\n  ".join(map(str, self.sections))
 
 
 class ExpectationValuesSubsection:
@@ -58,6 +69,6 @@ class ExpectationValuesSubsection:
             entrys[key] = value
             pos_start, pos_dot = pos_nextstart, pos_nextdot
             
-    def __str__(self):
-        return "%s: '%s'" % (self.name, "', '".join(self.content.values()))
+    #def __str__(self):
+    #    return "%s: '%s'" % (self.name, "', '".join(self.content.values()))
 

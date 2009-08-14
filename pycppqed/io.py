@@ -1,6 +1,7 @@
 import numpy
 import statevector
 import expvalues
+import quantumsystem
 import description
 import utils
 try:
@@ -136,14 +137,23 @@ def load_cppqed(path):
     desc = description.Description(descstr)
     titles = []
     subsystems = utils.OrderedDict()
+    start = 0
+    _systems = desc.quantumsystem.subsystems
+    length = len(_systems)
     for i, subs in enumerate(desc.expvalues.subsystems):
         titles.extend(subs.entrys.values())
+        end = len(titles)
+        if 0<i<=length:
+            subsystems["(%s)%s" % (i-1, _systems[i-1].__name__)] = (start, end)
+        start = end
+
     evs = numpy.array(evs).swapaxes(0,1)
     time = evs[0,:]
-    evstraj = expvalues.ExpectationValueCollection(evs,
-                            time=time, titles=titles, copy=False)
+    evstraj = expvalues.ExpectationValueCollection(evs, time=time,
+                            titles=titles, subsystems=subsystems, copy=False)
     svstraj = statevector.StateVectorTrajectory(svs)
-    return evstraj, svstraj
+    qs = quantumsystem.QuantumSystem(svstraj, *_systems)
+    return evstraj, qs
 
 def load_statevector(path):
     """

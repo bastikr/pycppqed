@@ -50,6 +50,8 @@ class ExpectationValueTrajectory(numpy.ndarray):
             title = self.title
         return "%s('%s')" % (clsname, title)
 
+    plot = visualization.plot_expvaluetraj
+
 
 class ExpectationValueCollection(numpy.ndarray):
     r"""
