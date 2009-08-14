@@ -346,11 +346,16 @@ class StateVectorTrajectory(numpy.ndarray):
     Most methods are simple mapped to all single StateVectors. For more
     documentation regarding these methods look into the docstrings of the 
     corresponding StateVector methods.
+
+    # TODO: Improve docstring of StateVectorTrajectory.
     """
-    def __new__(cls, data, **kwargs):
+    def __new__(cls, data, time=None, **kwargs):
         array = numpy.array(data, **kwargs)
         array = array.view(cls)
-        array.time = numpy.array([sv.time for sv in data])
+        if time is None:
+            array.time = numpy.array([sv.time for sv in data])
+        else:
+            array.time = time
         svs = [None]*array.shape[0]
         for i, entry in enumerate(array):
             svs[i] = StateVector(entry, time=array.time[i], copy=False)
