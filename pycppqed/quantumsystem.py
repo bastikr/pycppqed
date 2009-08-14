@@ -29,6 +29,7 @@ class QuantumSystem:
         ndim = len(args)
         assert len(statevector.dimensions) == ndim,\
             "StateVector rank and amount of subsystems have to be equal."
+        self.statevector = statevector
         self.subsystems = subsystems = [None]*ndim
         for i, arg in enumerate(args):
             if arg in SYSTEMS:
@@ -83,11 +84,11 @@ class Particle:
             X = numpy.linspace(-numpy.pi, numpy.pi, k_dim)
             ev = sv_x.diagexpvalue((X, X**2), indices=number, multi=True)
             ev_x = ev[0]*2*numpy.pi/k_dim
-            var_x = ev[1]*2*numpy.pi/k_dim - ev_x**2
+            std_x = numpy.sqrt(ev[1]*2*numpy.pi/k_dim - ev_x**2)
             evs.append(ev_x)
             titles.append("<x>")
-            evs.append(var_x)
-            titles.append("Var(x)")
+            evs.append(std_x)
+            titles.append("Std(x)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 
@@ -116,8 +117,11 @@ class Mode:
             titles.append("Var(n)")
         if a:
             m_a = numpy.diag(numpy.sqrt(numpy.arange(1, m_dim)), -1)
-            evs.append(sv.expvalue(m_a, indices=number))
-            titles.append("<a>")
+            ev_a = sv.expvalue(m_a, indices=number)
+            evs.append(ev_a.real)
+            titles.append("Re(<a>)")
+            evs.append(ev_a.imag)
+            titles.append("Im(<a>)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 
