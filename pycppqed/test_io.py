@@ -104,5 +104,14 @@ class CppqedTestCase(unittest.TestCase):
             self.assert_((svs2==qs.statevector).all())
 
 
+def suite():
+    load = unittest.defaultTestLoader.loadTestsFromTestCase
+    suite = unittest.TestSuite([
+            load(BlitzTestCase),
+            load(CppqedTestCase),
+            ])
+    return suite
+
+
 if __name__ == "__main__":
     unittest.main()

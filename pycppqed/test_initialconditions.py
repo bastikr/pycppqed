@@ -4,7 +4,7 @@ import initialconditions as ic
 
 eps = 1e-12
 
-class InitialConditions(unittest.TestCase):
+class InitialConditionsTestCase(unittest.TestCase):
     def test_gaussian(self):
         pars = (
             (1,0,0.1,7),
@@ -44,6 +44,14 @@ class InitialConditions(unittest.TestCase):
             ev_n = sv.expvalue(numpy.dot(at,a))
             self.assert_(numpy.abs(ev_a - alpha)<eps)
             self.assert_(numpy.abs(ev_n - numpy.abs(alpha)**2)<eps) 
+
+
+def suite():
+    load = unittest.defaultTestLoader.loadTestsFromTestCase
+    suite = unittest.TestSuite([
+            load(InitialConditionsTestCase),
+            ])
+    return suite
 
 
 if __name__ == "__main__":

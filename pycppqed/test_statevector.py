@@ -17,9 +17,9 @@ class StateVectorTestCase(unittest.TestCase):
 
     def test_normalize(self):
         sv = statevector.StateVector((5,1,6), norm=True)
-        N = (sv*sv.conjugate()).sum()
+        N = numpy.sqrt((sv*sv.conjugate()).sum())
         self.assert_(1-eps<N<1+eps)
-        self.assertEqual(N, sv.norm())
+        self.assert_(1-eps<sv.norm()<1+eps)
 
     def test_reduce(self):
         sv1 = statevector.StateVector((2,1,1), norm=True)
@@ -116,8 +116,13 @@ class StateVectorTrajectoryTestCase(unittest.TestCase):
         self.assertEqual(ev.shape, (2,20))
         
 
-        
-        
+def suite():
+    load = unittest.defaultTestLoader.loadTestsFromTestCase
+    suite = unittest.TestSuite([
+            load(StateVectorTestCase),
+            load(StateVectorTrajectoryTestCase)
+            ])
+    return suite
 
 
 if __name__ == "__main__":
