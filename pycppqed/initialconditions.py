@@ -2,7 +2,7 @@ import numpy
 import numpy.fft as fft
 import statevector
 
-def gaussian(x0=0, k0=0, sigma=0.3, fin=6):
+def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
     r"""
     Generate a StateVector with a normal distribution.
 
@@ -65,15 +65,27 @@ def coherent(alpha, N):
         * *N*
             A number determining the dimension of the Fock space.
 
-    The coherent state is calculated by the formula:
+    The coherent state is given by the formula:
 
         .. math::
 
             |\alpha\rangle = e^{-\frac {|\alpha|^2} {2}} \sum_{n=0}^{N}
                                 \frac {\alpha^n} {\sqrt{n!}} |n\rangle
+
+    Calculation is done using the recursive formula:
+
+        .. math::
+
+            a_0 = e^{- \frac {|\alpha|^2} {2}}
+
+        .. math::
+
+            a_n = a_{n-1} * \frac {\alpha} {\sqrt n}
     """
-    import scipy
-    n = numpy.arange(N)
-    x = alpha**n/(numpy.sqrt(scipy.factorial(n)))
-    return statevector.StateVector(x, norm=True)
+    x = numpy.empty(N)
+    x[0] = 1
+    for n in range(1,N):
+        x[n] = x[n-1]*alpha/numpy.sqrt(n)
+    x = numpy.exp(-numpy.abs(alpha)**2/2.)*x
+    return statevector.StateVector(x)
 
