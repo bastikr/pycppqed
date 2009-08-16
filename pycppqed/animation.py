@@ -123,27 +123,28 @@ class StateVectorCanvas3D(Canvas):
         self.data = data
         self.lims = lims
         self.ax = axes3d.Axes3D(figure)
-        self._line = None
+        self._lines = ()
  
     def plot(self, step):
-        if self._line is not None:
-            self._line.remove()
-        self._line = self.ax.plot_wireframe(self.X, self.Y, self.data[0][step], 
-                                        animated=True)
+        for line in self._lines:
+            line.remove()
+        self._lines = [self.ax.plot_wireframe(self.X, self.Y, self.data[0][step], 
+                                        animated=True)]
         self.ax.set_zlim3d(self.lims[0])
         self.draw()
-        self.ax.draw_artist(self._line)
+        self.ax.draw_artist(self._lines[0])
         self.blit(self.ax.bbox)
 
     def fast_plot(self, step):
-        array = numpy.array([[self.X, self.Y, self.data[0][step]],
-                    [self.X.T, self.Y.T, self.data[0][step].T]])
-        array = array.swapaxes(1,2).swapaxes(2,3)
-        s = array.shape
-        array = art3d.Line3DCollection(array.reshape((s[1]*2, s[2], s[3])))
-        self._line.remove()
-        self._line = array
-        self.ax.add_collection(self._line)
+        array = numpy.array([self.X, self.Y, self.data[0][step]])
+        array1 = art3d.Line3DCollection(array.transpose((2,1,0)))
+        array = numpy.array([self.X.T, self.Y.T, self.data[0][step].T])
+        array2 = art3d.Line3DCollection(array.transpose((2,1,0)))
+        for line in self._lines:
+            line.remove()
+        self._lines = (array1, array2)
+        self.ax.add_collection(array1)
+        self.ax.add_collection(array2)
         self.draw()
 
 
