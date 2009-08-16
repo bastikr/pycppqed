@@ -1,94 +1,37 @@
 import numpy
 
-def statevector(sv, x=None, show=True, **kwargs):
+def statevector(sv, x=None, y=None, re=False, im=False, abs=True, show=True,
+                **kwargs):
     import pylab
     dims = len(sv.shape)
+    if dims>2:
+        raise ValueError("StateVector has too many dimensions.")
+    indices = numpy.array(map(bool, (re, im, abs)))
+    titles = numpy.array(("$Re(\Psi)$", "$Im(\Psi)$", "$\|\Psi\|^2$"))[indices]
+    funcs = numpy.array((lambda x:x.real, lambda x:x.imag,
+                         lambda x:numpy.abs(x)**2))[indices]
+    length = len(funcs)
     if x is None:
         x = numpy.arange(sv.shape[0])
     if dims == 1:
-        pylab.subplot(311)
-        pylab.plot(x, numpy.real(sv), **kwargs)
-        pylab.title("Real part")
-        pylab.subplot(312)
-        pylab.plot(x, numpy.imag(sv), **kwargs)
-        pylab.title("Imaginary part")
-        pylab.subplot(313)
-        pylab.plot(x, numpy.abs(sv)**2, **kwargs)
-        pylab.title("Abs square")
+        for i, title in enumerate(titles):
+            pylab.subplot(length, 1, i+1)
+            pylab.plot(x, funcs[i](sv), **kwargs)
+            pylab.title(title)
     elif dims == 2:
-        pylab.subplot(311)
-        pylab.imshow(numpy.real(sv), interpolation="nearest", **kwargs)
-        pylab.title("Real part")
-        pylab.subplot(312)
-        pylab.imshow(numpy.real(sv), interpolation="nearest", **kwargs)
-        pylab.title("Imaginary part")
-        pylab.subplot(313)
-        pylab.imshow(numpy.abs(sv)**2, interpolation="nearest",
-                        **kwargs)
-        pylab.title("Abs square")
-    else:
-        raise TypeError("Too many dimensions to plot!")
+        if y is None:
+            y = numpy.arange(sv.shape[1])
+        X, Y = numpy.meshgrid(y,x)
+        from mpl_toolkits.mplot3d import axes3d
+        
+        ax = axes3d.Axes3D(pylab.gcf())
+        for i, title in enumerate(titles):
+            #pylab.subplot(length, 1, i+1)
+            ax.plot_wireframe(X, Y, funcs[i](sv), **kwargs)
+            pylab.title(title)
+            break
     if show:
         pylab.show()
-
-def statevector_animation(svs, re=False, im=False, abs=True):
-    import pylab
-    from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg
-    from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
-    import gtk, gobject
-    ndims = len(svs.dimensions)
-    length = len(svs.time)
-    funcs = []
-    if re:
-        funcs.append(lambda i:svs[i].real)
-    if im:
-        funcs.append(lambda i:svs[i].imag)
-    if abs:
-        funcs.append(lambda i:numpy.abs(svs[i]))
-    if ndims == 1:
-        win = gtk.Window()
-        win.connect("destroy", lambda x: gtk.main_quit())
-        win.set_title("State Vector")
-        win.set_default_size(400,300)
-        vbox = gtk.VBox()
-        win.add(vbox)
-        #pylab.ion()
-        fig = pylab.gcf()
-        canvas = FigureCanvasGTKAgg(fig)
-        vbox.pack_start(canvas)
-        playbutton = gtk.ToolButton(gtk.STOCK_MEDIA_PLAY)
-        toolbar = NavigationToolbar2GTKAgg(canvas, win)
-        vbox.pack_start(toolbar, False, False)
-        toolbar.insert(gtk.SeparatorToolItem(), 8)
-        toolbar.insert(playbutton, 9)
-        min = svs.min()
-        max = svs.max()
-        max = max + 0.1*numpy.abs(max)
-        axes = []
-        lines = []
-        for i in range(len(funcs)):
-            axes.append(fig.add_subplot(len(funcs),1,i+1))
-            lines.append(axes[-1].plot(funcs[i](0), animated=True)[0])
-            axes[-1].set_ylim(min, max)
-        canvas.draw()
-        def update(*args):
-            if not hasattr(update, "background"):
-                update.background = canvas.copy_from_bbox(fig.bbox)
-                update.cnt = 0
-            canvas.restore_region(update.background)
-            for i, line in enumerate(lines):
-                line.set_ydata(funcs[i](update.cnt))
-                axes[i].draw_artist(line)
-                canvas.blit(axes[i].bbox)
-            update.cnt += 1
-            if update.cnt < length:
-                return True
-            else:
-                return False
-        gobject.idle_add(update)
-        win.show_all()
-        gtk.main()
-
 
 def expvaluetraj(evs, show=True):
     import pylab
