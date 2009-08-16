@@ -27,8 +27,9 @@ class QuantumSystem:
     """
     def __init__(self, statevector, *args):
         ndim = len(args)
-        assert len(statevector.dimensions) == ndim,\
-            "StateVector rank and amount of subsystems have to be equal."
+        # This assertion is not good if there is an empty StateVector.
+        #assert len(statevector.dimensions) == ndim,\
+        #    "StateVector rank and amount of subsystems have to be equal."
         self.statevector = statevector
         self.subsystems = subsystems = [None]*ndim
         for i, arg in enumerate(args):
