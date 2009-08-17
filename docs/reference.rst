@@ -1,6 +1,8 @@
-============
-PyCppQED API
-============
+.. _reference:
+
+==================
+PyCppQED Reference
+==================
 
 This document lists all classes and functions implemented in PyCppQED.
 

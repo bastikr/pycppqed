@@ -1,8 +1,12 @@
-========
-Tutorial
-========
+.. _user_guide:
 
-This document gives some basic instructions on how to use pycppqed.
+===================
+PyCppQED User Guide
+===================
+
+This guide explains how to use different features of PyCppQED. For a detailed
+documentation about all modules, classes and functions look into the 
+:ref:`reference`.
 
 .. contents::
     :depth: 3
@@ -17,9 +21,9 @@ simulating open quantum dynamics written in C++. Since C++ is not the favorite
 programming language of everyone, PyCppQED extends this framework with useful
 functionality:
 
- * Import of C++QED output files into python.
- * Export of this data as `Matlab`_ *.mat* files.
- * Fast and easy visualization of imported data.
+ * Import C++QED output files into python.
+ * Export this data as `Matlab`_ *.mat* files.
+ * Fast and easy visualization/animation of imported data.
  * Generating arbitrary initial condition vectors for C++QED. 
 
 
@@ -38,6 +42,30 @@ This will compile the extension file and save it to a path like
 file into the pycppqed directory and enjoy the speed.
 
 
+Overview
+========
+
+PyCppQED has a strict modular design:
+
+ * Python classes representing objects used in QED:
+     * :mod:`pycppqed.statevector` implements state vectors. 
+
+     * :mod:`pycppqed.expvalues` implements classes for working with
+       expectation values.
+
+     * :mod:`pycppqed.quantumsystem` implements classes representing
+       quantum systems.
+
+ * Functions for generating some useful initial conditions are in
+   :mod:`pycppqed.initialconditions`.
+
+ * Everything that has to do with reading and writing C++QED files is in
+   the module :mod:`pycppqed.io`.
+
+ * Plotting stuff is in :mod:`pycppqed.visualization` and animation functions
+   are implemented in :mod:`pycppqed.animation`.
+
+
 Usage
 =====
 
@@ -45,6 +73,9 @@ All following commands assume that PyCppQED is already imported::
 
     >>> import pycppqed as qed
 
+
+How to ...
+==========
 
 Split up C++QED output file into standard output and state vectors
 ------------------------------------------------------------------
@@ -54,27 +85,21 @@ are written into the output file between the calculated expectation values.
 With PyCppQED it's easy to extract the state vectors into own files and
 getting a standard C++QED output file.
 
-Every time you want to read/write something from/as a C++QED output file you
-will need the :mod:`pycppqed.io` module. It has several functions to load,
-save  and convert C++QED output files. One of the of them is the
-:func:`pycppqed.io.split_cppqed` function::
-
     >>> qed.io.split_cppqed("ring.dat", "newring.dat")
 
 This writes the standard output file to :file:`newring` and the state vectors
-into separate files named :file:`ring_time.dat.sv` where :token:`time` is
+into separate files named :file:`newring_/{time/}.dat.sv` where :token:`time` is
 substituted by the time when this state vector was reached.
 
 
 .. _import2python:
 
-Import C++QED output file into python
--------------------------------------
+Import a C++QED output file
+---------------------------
 
-Again we use the io module, but now the function 
-:func:`pycppqed.io.load_cppqed`::
+This is done with the function :func:`pycppqed.io.load_cppqed`::
 
-    >>> evs, svs = qed.io.load_cppqed_output("ring.dat")
+    >>> evs, qs = qed.io.load_cppqed_output("ring.dat")
 
 This returns two objects which represent the whole information stored
 in the C++QED output file:
@@ -82,8 +107,10 @@ in the C++QED output file:
  * A :class:`pycppqed.expvalues.ExpectationValueCollection` instance which
    holds all expectation values calculated by C++QED.
 
- * A :class:`pycppqed.statevector.StateVectorTrajectory` instance representing
-   the state vector at different points of time.
+ * A :class:`pycppqed.quantumsystem.QuantumSystemCompound` instance
+   representing the calculated quantum system. This object also stores a 
+   :class:`pycppqed.statevector.StateVectorTrajectory` instance which holds
+   all calculated state vectors.
 
 
 Export python data as *.mat* file
@@ -91,16 +118,16 @@ Export python data as *.mat* file
 
 If you want to use `Matlab`_ or `Octave`_ for further processing of the data
 you can use PyCppQED to convert a C++QED output file into a *.mat* file.
-Again, we have load the file like in :ref:`import2python`. The obtained 
+First, we have to load the file like in :ref:`import2python`. The obtained 
 objects (or only parts of it, or any other array ...) can be saved with
 the :meth:`scipy.io.savemat` function::
 
     >>> import scipy.io
-    >>> scipy.io.savemat("out.mat", {"evs":evs, "svs":svs})
+    >>> scipy.io.savemat("out.mat", {"evs":evs, "svs":qs.statevector})
 
 This file can be used from `Matlab`_ and `Octave`_:
 
-.. code-block:: c
+.. code-block:: matlab
 
     >>> load("out.mat")
     >>> size(evs)
