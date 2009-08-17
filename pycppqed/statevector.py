@@ -456,7 +456,17 @@ class StateVectorTrajectory(numpy.ndarray):
         evs = numpy.array(evs).swapaxes(0,1)
         return expvalues.ExpectationValueCollection(
                             evs, self.time, titles, copy=False)
-        
+
+    def animate(self, x=None, y=None, re=False, im=False, abs=True):
+        """
+        Create an interactive animation of this StateVectorTrajectory.
+
+        For more information look into the docstring of
+        :meth:`pycppqed.animation.animate_statevector`.
+        """
+        from pycppqed.animation import animate_statevector
+        return animate_statevector(self, x, y, re, im, abs)
+
 
 def norm(array):
     """

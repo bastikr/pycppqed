@@ -9,7 +9,7 @@ import pylab
 from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg,\
     FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtk import FileChooserDialog
-from mpl_toolkits.mplot3d import axes3d, art3d
+#from mpl_toolkits.mplot3d import axes3d, art3d
 
 
 class PlayButton(gtk.ToolButton):
@@ -122,14 +122,16 @@ class StateVectorCanvas3D(Canvas):
         self.Y = Y
         self.data = data
         self.lims = lims
+        from mpl_toolkits.mplot3d import axes3d, art3d
         self.ax = axes3d.Axes3D(figure)
+        self.art3d = art3d
         self._lines = ()
  
     def plot(self, step):
         for line in self._lines:
             line.remove()
-        self._lines = [self.ax.plot_wireframe(self.X, self.Y, self.data[0][step], 
-                                        animated=True)]
+        self._lines = [self.ax.plot_wireframe(self.X, self.Y,
+                                    self.data[0][step], animated=True)]
         self.ax.set_zlim3d(self.lims[0])
         self.draw()
         self.ax.draw_artist(self._lines[0])
@@ -137,9 +139,9 @@ class StateVectorCanvas3D(Canvas):
 
     def fast_plot(self, step):
         array = numpy.array([self.X, self.Y, self.data[0][step]])
-        array1 = art3d.Line3DCollection(array.transpose((2,1,0)))
+        array1 = self.art3d.Line3DCollection(array.transpose((2,1,0)))
         array = numpy.array([self.X.T, self.Y.T, self.data[0][step].T])
-        array2 = art3d.Line3DCollection(array.transpose((2,1,0)))
+        array2 = self.art3d.Line3DCollection(array.transpose((2,1,0)))
         for line in self._lines:
             line.remove()
         self._lines = (array1, array2)
@@ -242,38 +244,72 @@ class Animation(gtk.Window):
         shutil.rmtree(tempdirpath)
 
 
-def statevector_animation(svs, x=None, y=None, re=False, im=False, abs=True):
-    ndim = len(svs.dimensions)
+def animate_statevector(svtraj, x=None, y=None, re=False, im=False, abs=True):
+    """
+    Create an interactive animation of the given StateVectorTrajectory.
+
+    *Usage*
+        >>> import numpy as np
+        >>> X = np.linspace(-0.5, 0.5, 100)
+        >>> svs = [pycppqed.gaussian(x) for x in X]
+        >>> svtraj = pycppqed.StateVectorTrajectory(svs)
+        >>> animate_statevector(svtraj)
+
+    *Arguments*
+        * *svtraj*
+            A :class:`pycppqed.statevector.StateVectorTrajectory` that should
+            be animated.
+
+        * *x*
+            An array giving the 1st-coordinates of the state vectors (optional).
+
+        * *y*
+            An array giving the 2nd-coordinates of the state vectors (optional).
+
+        * *re*
+            If set True the real part of the state vectors will be animated.
+            (Default is False)
+        
+        * *im*
+            If set True the imaginary part of the state vectors will be
+            animated. (Default is False)
+        
+        * *abs*
+            If set True the absolute square of the state vectors will be
+            animated. (Default is True)
+    """
+    ndim = len(svtraj.dimensions)
     if ndim>2:
         raise ValueError("StateVectors have too many dimensions.")
-    length = len(svs.time)
+    length = len(svtraj.time)
     if x is None:
-        x = numpy.arange(svs.dimensions[0])
+        x = numpy.arange(svtraj.dimensions[0])
     titles = []
     data = []
     lims = []
     if re:
-        svs_re = svs.real
+        svtraj_re = svtraj.real
         titles.append("$Re(\Psi)$")
-        data.append(svs_re)
-        lims.append((svs_re.min(), svs_re.max()))
+        data.append(svtraj_re)
+        lims.append((svtraj_re.min(), svtraj_re.max()))
     if im:
-        svs_im = svs.imag
+        svtraj_im = svtraj.imag
         titles.append("$Im(\Psi)$")
-        data.append(svs_im)
-        lims.append((svs_im.min(), svs_im.max()))
+        data.append(svtraj_im)
+        lims.append((svtraj_im.min(), svtraj_im.max()))
     if abs:
-        svs_abs = numpy.abs(svs)**2
+        svtraj_abs = numpy.abs(svtraj)**2
         titles.append("$\|\Psi\|^2$")
-        data.append(svs_abs)
-        lims.append((svs_abs.min(), svs_abs.max()))
+        data.append(svtraj_abs)
+        lims.append((svtraj_abs.min(), svtraj_abs.max()))
 
     fig = pylab.gcf()
+    fig.clear()
     if ndim == 1:
         canvas = StateVectorCanvas(fig, x, data, lims)
     elif ndim == 2:
         if y is None:
-            y = numpy.arange(svs.dimensions[1])
+            y = numpy.arange(svtraj.dimensions[1])
         X, Y = numpy.meshgrid(y,x)
         canvas = StateVectorCanvas3D(fig, X, Y, data, lims)
     canvas = Animation(canvas, length)
