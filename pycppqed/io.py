@@ -2,10 +2,10 @@
 This module provides functions to read and write C++QED files.
 
 Most important are:
-    * load_cppqed
-    * load_statevector
-    * save_statevector
-    * split_cppqed
+    * :func:`load_cppqed`
+    * :func:`load_statevector`
+    * :func:`save_statevector`
+    * :func:`split_cppqed`
 """
 import numpy
 import statevector
@@ -197,7 +197,7 @@ def load_statevector(filename):
         >>> sv = load_statevector("ring.sv")
 
     *Arguments*
-        * *filenam*
+        * *filename*
             Path to the C++QED state vector file that should be loaded.
 
     *Returns*
@@ -226,7 +226,7 @@ def save_statevector(filename, sv):
             Path to the location where the StateVector should be saved to.
 
         *sv*
-            A StateVector instance.
+            A :class:`pycppqed.statevector.StateVector` instance.
     """
     isfile = False
     f = open(filename, "w")
@@ -249,7 +249,7 @@ def split_cppqed(readpath, writepath, header=True):
             Path where the output should be saved to.
 
         * *header*
-            If True a header line of the form "# {time} {next_time_step} "
+            If True a header line of the form ``# {time} {next_time_step}``
             is written.
 
     The standard part of the C++QED output file is saved to the given path,

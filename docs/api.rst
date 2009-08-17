@@ -18,10 +18,11 @@ This document lists all classes and functions implemented in PyCppQED.
     :undoc-members:
 
 
-:mod:`pycppqed.initialconditions`
-=================================
+:mod:`pycppqed.expvalues`
+=========================
 
-.. automodule:: pycppqed.initialconditions
+.. automodule:: pycppqed.expvalues
+    :show-inheritance:
     :members:
     :undoc-members:
 
@@ -30,6 +31,16 @@ This document lists all classes and functions implemented in PyCppQED.
 ==================
 
 .. automodule:: pycppqed.io
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+
+:mod:`pycppqed.initialconditions`
+=================================
+
+.. automodule:: pycppqed.initialconditions
+    :show-inheritance:
     :members:
     :undoc-members:
 
@@ -38,14 +49,7 @@ This document lists all classes and functions implemented in PyCppQED.
 =============================
 
 .. automodule:: pycppqed.quantumsystem
-    :members:
-    :undoc-members:
-
-
-:mod:`pycppqed.expvalues`
-=========================
-
-.. automodule:: pycppqed.expvalues
+    :show-inheritance:
     :members:
     :undoc-members:
 
@@ -54,6 +58,24 @@ This document lists all classes and functions implemented in PyCppQED.
 ===========================
 
 .. automodule:: pycppqed.description
+    :show-inheritance:
     :members:
     :undoc-members:
 
+
+:mod:`pycppqed.visualization`
+=============================
+
+.. automodule:: pycppqed.visualization
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+
+:mod:`pycppqed.animation`
+=========================
+
+.. automodule:: pycppqed.animation
+    :show-inheritance:
+    :members: animate_statevector
+        

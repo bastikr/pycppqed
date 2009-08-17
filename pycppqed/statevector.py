@@ -1,3 +1,15 @@
+"""
+This module provides an implementation for state vectors.
+
+The relevant classes are:
+    * :class:`StateVector`
+    * :class:`StateVectorTrajectory`
+
+The :class:`StateVector` represents a state vector at a specific point of time
+while the :class:`StateVectorTrajectory` represents a state vector at different
+points of time.
+"""
+
 import numpy
 import expvalues
 import visualization
@@ -25,11 +37,11 @@ class StateVector(numpy.ndarray):
             Anything that can be used to create a numpy array, e.g. a nested
             tuple or another numpy array.
 
-        * *time*
+        * *time* (optional)
             A number defining the point of time when this state vector was
             reached. (Default is 0)
 
-        * *norm*
+        * *norm* (optional)
             If set True the StateVector will be automatically normalized.
             (Default is False)
         
@@ -111,7 +123,7 @@ class StateVector(numpy.ndarray):
                 An integer or a list of integers specifying over which
                 subspaces should be summated.
 
-            * *norm*
+            * *norm* (optional)
                 If set True the resulting StateVector will be renormalized.
 
         Reducing means nothing else then summing up over all given indices.
@@ -154,7 +166,7 @@ class StateVector(numpy.ndarray):
 
     def reducesquare(self, indices):
         r"""
-        Return a reduced Psi-square tensor.
+        Calculate the reduced Psi-square tensor.
         
         *Usage*
             >>> sv1 = StateVector((0,1,2,1,0), norm=True)
@@ -196,7 +208,7 @@ class StateVector(numpy.ndarray):
             StateVector(7)
 
         *Arguments*
-            * *axis*
+            * *axis* (optional)
                 Axis over which the fft is done. (Default is 0)
         """
         f = numpy.fft
@@ -225,11 +237,11 @@ class StateVector(numpy.ndarray):
                 A tensor representing an arbitrary operator in the
                 basis of the StateVector.
 
-            * *indices*
+            * *indices* (optional)
                 Specifies which subsystems should be taken. If None is given
                 the whole system is used.
 
-            * *multi*
+            * *multi* (optional)
                 If multi is True it is assumed that a list of operators is
                 given. (Default is False)
 
@@ -273,11 +285,11 @@ class StateVector(numpy.ndarray):
                 The diagonal elements of a tensor representing an arbitrary
                 diagonal operator in the basis of the StateVector.
 
-            * *indices*
+            * *indices* (optional)
                 Specifies which subsystems should be taken. If None is given
                 the whole system is used.
 
-            * *multi*
+            * *multi* (optional)
                 If multi is True it is assumed that a list of operators is
                 given. (Default is False)
 
@@ -343,11 +355,31 @@ class StateVectorTrajectory(numpy.ndarray):
     """
     A class holding StateVectors for different points of time.
 
+    *Usage*
+        >>> import numpy as np
+        >>> X = np.linspace(-0.5, 0.5, 100)
+        >>> svs = [pycppqed.gaussian(x) for x in X]
+        >>> svtraj = StateVectorTrajectory(svs)
+        >>> print svtraj
+        StateVectorTrajectory(100 x (64))
+
+    *Arguments*
+        * *data*
+            Some nested structure which holds state vector like arrays for
+            different points of time.
+
+        * *time* (optional)
+            An array which specifies the point of time for every state
+            vector. This array must have as many entries as there are state
+            vectors.
+
+        * Any other argument that a numpy array takes. E.g. ``copy=False`` can
+          be used so that the StateVectorTrajectory shares the data storage
+          with the given numpy array.
+
     Most methods are simple mapped to all single StateVectors. For more
     documentation regarding these methods look into the docstrings of the 
-    corresponding StateVector methods.
-
-    # TODO: Improve docstring of StateVectorTrajectory.
+    corresponding :class:`StateVector` methods.
     """
     def __new__(cls, data, time=None, **kwargs):
         array = numpy.array(data, **kwargs)
@@ -381,7 +413,7 @@ class StateVectorTrajectory(numpy.ndarray):
             * *func*
                 Function that takes a StateVector as argument.
 
-            * *svt*
+            * *svt* (optional)
                 If svt is True, the return value will be an instance of
                 StateVectorTrajectory.
         """
@@ -429,7 +461,10 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         Calculate the expectation value of the operator for all StateVectors.
 
-        Returns an ExpectationValuesTrajectory instance.
+        *Returns*
+            *evtraj*
+                An :class:`pycppqed.expvalues.ExpectationValuesTrajectory`
+                instance.
 
         See also: :meth:`StateVector.expvalue`
         """
@@ -445,7 +480,10 @@ class StateVectorTrajectory(numpy.ndarray):
         """
         Calculate the expectation value of the diagonal operator for all SVs.
 
-        Returns an ExpectationValuesTrajectory instance.
+        *Returns*
+            *evtraj*
+                An :class:`pycppqed.expvalues.ExpectationValuesTrajectory`
+                instance.
 
         See also: :meth:`StateVector.diagexpvalue`
         """

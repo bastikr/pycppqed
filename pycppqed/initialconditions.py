@@ -1,3 +1,11 @@
+"""
+This module provides convenient methods for creating initial conditions.
+
+At the moment the following initial conditions are implemented:
+    * :func:`gaussian`
+    * :func:`coherent`
+"""
+
 import numpy
 import numpy.fft as fft
 import statevector
@@ -21,6 +29,11 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
 
         * *fin*
             2**fin determines the amount of sample points.
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector` representing this
+            gaussian wave packet in the k-space.
 
     The generated StateVector is normalized and given in the k-space. It
     is the Fourier transformed of the following expression:
@@ -64,6 +77,10 @@ def coherent(alpha, N):
 
         * *N*
             A number determining the dimension of the Fock space.
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector`.
 
     The coherent state is given by the formula:
 
