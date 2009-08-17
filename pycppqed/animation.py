@@ -11,7 +11,10 @@ import tempfile
 import os
 import shutil
 import subprocess
-import pylab
+try:
+    import pylab
+except:
+    print "matplotlib not found - plotting not possible."
 
 try:
     import gtk
