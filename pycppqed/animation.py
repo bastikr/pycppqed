@@ -3,13 +3,40 @@ import tempfile
 import os
 import shutil
 import subprocess
-import gtk
-import gobject
 import pylab
-from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg,\
-    FigureCanvasGTKAgg
-from matplotlib.backends.backend_gtk import FileChooserDialog
-#from mpl_toolkits.mplot3d import axes3d, art3d
+
+try:
+    import gtk
+except:
+    print "gtk not found - animations not possible"
+    class gtk(object):
+        def __getattr__(self, name):
+            return object
+    gtk = gtk()
+
+try:
+    import gobject
+except:
+    print "gobject not found - animations not possible."
+    class gobject(object):
+        def __getattr__(self, name):
+            return lambda *args, **kwargs:None
+    gobject = gobject()
+
+try:
+    from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg,\
+        FigureCanvasGTKAgg
+    from matplotlib.backends.backend_gtk import FileChooserDialog
+except:
+    print "Can't import matplotlib gtk backends - animations not possible."
+    NavigationToolbar2GTKAgg = object
+    FigureCanvasGTKAgg = object
+    FileChooserDialog = object
+
+try:
+    from mpl_toolkits.mplot3d import axes3d, art3d
+except:
+    print "Can't import matplotlib 3D toolkit - 3D animations not possible."
 
 
 class PlayButton(gtk.ToolButton):
@@ -122,9 +149,7 @@ class StateVectorCanvas3D(Canvas):
         self.Y = Y
         self.data = data
         self.lims = lims
-        from mpl_toolkits.mplot3d import axes3d, art3d
         self.ax = axes3d.Axes3D(figure)
-        self.art3d = art3d
         self._lines = ()
  
     def plot(self, step):
@@ -139,9 +164,9 @@ class StateVectorCanvas3D(Canvas):
 
     def fast_plot(self, step):
         array = numpy.array([self.X, self.Y, self.data[0][step]])
-        array1 = self.art3d.Line3DCollection(array.transpose((2,1,0)))
+        array1 = art3d.Line3DCollection(array.transpose((2,1,0)))
         array = numpy.array([self.X.T, self.Y.T, self.data[0][step].T])
-        array2 = self.art3d.Line3DCollection(array.transpose((2,1,0)))
+        array2 = art3d.Line3DCollection(array.transpose((2,1,0)))
         for line in self._lines:
             line.remove()
         self._lines = (array1, array2)
@@ -260,21 +285,21 @@ def animate_statevector(svtraj, x=None, y=None, re=False, im=False, abs=True):
             A :class:`pycppqed.statevector.StateVectorTrajectory` that should
             be animated.
 
-        * *x*
-            An array giving the 1st-coordinates of the state vectors (optional).
+        * *x* (optional)
+            An array giving the 1st-coordinates of the state vectors.
 
-        * *y*
-            An array giving the 2nd-coordinates of the state vectors (optional).
+        * *y* (optional)
+            An array giving the 2nd-coordinates of the state vectors.
 
-        * *re*
+        * *re* (optional)
             If set True the real part of the state vectors will be animated.
             (Default is False)
         
-        * *im*
+        * *im* (optional)
             If set True the imaginary part of the state vectors will be
             animated. (Default is False)
         
-        * *abs*
+        * *abs* (optional)
             If set True the absolute square of the state vectors will be
             animated. (Default is True)
     """
