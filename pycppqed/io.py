@@ -34,7 +34,7 @@ def _blitz2numpy(blitzstr):
     # Parse data part either with c-extension or with python code.
     if cio is not None:
         import locale
-        locale.setlocale(locale.LC_ALL, "en_US")
+        locale.setlocale(locale.LC_ALL, "en_US.utf8")
         array = numpy.array(cio.parse(datastr, length))
     else:
         array = numpy.empty(length, dtype="complex")
