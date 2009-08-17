@@ -1,10 +1,22 @@
+"""
+This module provides classes for working with expectation values.
+
+The relevant classes are:
+    * :class:`ExpectationValueTrajectory`
+    * :class:`ExpectationValueCollection`
+
+The :class:`ExpectationValueTrajectory` stores **one** expectation value at
+different points of time while the :class:`ExpectationValueCollection` stores
+**several** expectation values at different points of time.
+"""
+
 import numpy
 import utils
 import visualization
 
 class ExpectationValueTrajectory(numpy.ndarray):
     r"""
-    A class representing an expectation value to different points of time.
+    A class representing one expectation value at different points of time.
 
     *Usage*
         >>> T = numpy.linspace(0,10)
@@ -16,10 +28,10 @@ class ExpectationValueTrajectory(numpy.ndarray):
             A 1d array or similar data structure representing an expectation
             value at different points of time.
 
-        * *time*
+        * *time* (optional)
             A 1d array or list specifying the points of time.
 
-        * *title*
+        * *title* (optional)
             The name of the expectation value. (Can be any unicode string)
 
         * Any other argument that a numpy array can use for creation. E.g.
@@ -50,7 +62,7 @@ class ExpectationValueTrajectory(numpy.ndarray):
             title = self.title
         return "%s('%s')" % (clsname, title)
 
-    plot = visualization.expvaluetraj
+    plot = visualization.expvaluetrajectory
 
 
 class ExpectationValueCollection(numpy.ndarray):
@@ -58,28 +70,30 @@ class ExpectationValueCollection(numpy.ndarray):
     A class representing several expectation values at different points of time.
 
     *Usage*
-        >>> T = numpy.linspace(0,10)
-        >>> X = numpy.sin(T)
-        >>> Y = numpy.cos(T)
+        >>> import numpy as np
+        >>> T = np.linspace(0,10)
+        >>> X = np.sin(T)
+        >>> Y = np.cos(T)
         >>> ev = ExpectationValueTrajectoryCollection((X,Y), T, ("<x>", "<y>"))
 
     *Arguments*
         * *data*
             A list of 1D arrays or some similar data structure.
 
-        * *time*
+        * *time* (optional)
             A 1d array or list specifying the points of time.
             
-        * *titles*
-            The names of the expectation value. (Can be any unicode string)
+        * *titles* (optional)
+            A list of names for the expectation values. (The names can be any
+            unicode string)
 
-        * *subsystems*
-            Dictionary specifying subsystems. E.g. {"Mode1" : (1,3)}.
+        * *subsystems* (optional)
+            Dictionary specifying subsystems. E.g. ``{"Mode1" : (1,3)}``.
 
         * Any other argument that a numpy array can use for creation. E.g.
           ``copy = False`` can be used so that the 
-          ExpectationValueTrajecoryCollection shares the data storage with the
-          given numpy array.
+          ExpectationValueCollection shares the data storage with the given
+          numpy array.
     """
     def __new__(cls, data, time=None, titles=None, subsystems=None, **kwargs):
         if isinstance(data, ExpectationValueTrajectory):

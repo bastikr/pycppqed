@@ -16,19 +16,21 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
 
     *Usage*
         >>> sv = gaussian(x0=0.3, k0=4, sigma=0.6, fin=7)
+        >>> print sv
+        StateVector(128)
 
     *Arguments*
-        * *x0*
+        * *x0* (optional)
             Center in the real space.
 
-        * *k0*
+        * *k0* (optional)
             Center in the k-space.
 
-        * *sigma*
-            Width in the real space (= sqrt(Var(x))).
+        * *sigma* (optional)
+            Width in the real space :math:`(\sigma = \sqrt{Var(x)})`.
 
-        * *fin*
-            2**fin determines the amount of sample points.
+        * *fin* (optional)
+            :math:`2^{fin}` determines the amount of sample points.
 
     *Returns*
         * *sv*
@@ -62,7 +64,7 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
     return statevector.StateVector(F)
 
 
-def coherent(alpha, N):
+def coherent(alpha=2, N=20):
     r"""
     Generate a coherent StateVector in the Fock space.
 
@@ -72,11 +74,12 @@ def coherent(alpha, N):
         StateVector(20)
 
     *Arguments*
-        * *alpha*
-            A complex number specifying the coherent state.
+        * *alpha* (optional)
+            A complex number specifying the coherent state. (Default is 2)
 
-        * *N*
-            A number determining the dimension of the Fock space.
+        * *N* (optional)
+            A number determining the dimension of the Fock space. (Default is
+            20)
 
     *Returns*
         * *sv*

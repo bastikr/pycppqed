@@ -186,7 +186,7 @@ def load_cppqed(filename):
     evstraj = expvalues.ExpectationValueCollection(evs, time=time,
                             titles=titles, subsystems=subsystems, copy=False)
     svstraj = statevector.StateVectorTrajectory(svs)
-    qs = quantumsystem.QuantumSystem(svstraj, *_systems)
+    qs = quantumsystem.QuantumSystemCompound(svstraj, *_systems)
     return evstraj, qs
 
 def load_statevector(filename):
@@ -248,9 +248,9 @@ def split_cppqed(readpath, writepath, header=True):
         * *writepath*
             Path where the output should be saved to.
 
-        * *header*
+        * *header* (optional)
             If True a header line of the form ``# {time} {next_time_step}``
-            is written.
+            is written. (Default is True)
 
     The standard part of the C++QED output file is saved to the given path,
     while the state vectors are saved to the same directory with the

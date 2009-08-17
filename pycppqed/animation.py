@@ -1,3 +1,11 @@
+"""
+This module implements animations with matplotlib.
+
+The function :func:`animate_statevector` provides an easy way to animate
+2D and 3D StateVectorTrajectories. This function can also be accessed through
+:meth:`pycppqed.statevector.StateVectorTrajectory.animate`.
+"""
+
 import numpy
 import tempfile
 import os

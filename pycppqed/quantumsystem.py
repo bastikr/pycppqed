@@ -1,8 +1,44 @@
+"""
+This module provides classes to represent quantum systems calculated by C++QED.
+
+Following components are implemented:
+    * :class:`Particle`
+    * :class:`Mode`
+
+Components can be combined to new systems in the class
+:class:`QuantumSystemCombound`.
+
+All classes in this module inherit from :class:`QuantumSystem`.
+
+# TODO: Improve quantumsystem.py
+"""
 import numpy
 import expvalues
 import utils
 
 class QuantumSystem:
+    """
+    A base class for all other specific quantum system.
+    """
+    def __init__(self, statevector, number=0):
+        self.statevector = statevector
+        self.number = number
+
+    def __str__(self):
+        clsname = self.__class__.__name__
+        dims = self.statevector.dimensions[self.number]
+        return "%s(%s)" % (clsname, dims)
+
+    def expvalues(self):
+        """
+        Calculate the default expectation values for this system.
+
+        This method has to be overridden in all inheriting classes.
+        """
+        raise NotImplementedError
+
+
+class QuantumSystemCompound(QuantumSystem):
     """
     A class representing a combined quantum system.
 
@@ -19,11 +55,13 @@ class QuantumSystem:
 
     *Arguments*
         * *statevector*
-            A StateVector or StateVectorTrajectory describing this system.
+            A :class:`pycppqed.statevector.StateVector` or 
+            :class:`pycppqed.statevector.StateVectorTrajectory` describing
+            this system.
 
         * *\*args*
             Elementary quantum systems which together build this combined
-            QuantumSystem.
+            quantum system.
     """
     def __init__(self, statevector, *args):
         ndim = len(args)
@@ -39,6 +77,19 @@ class QuantumSystem:
                 raise ValueError("Argument has to be a System class.")
 
     def expvalues(self, subsystems=None):
+        """
+        Calculate the default expectation values for this system.
+
+        *Arguments*
+            * *subsystems* (optional)
+                A list of integers specifying for which subsystems the 
+                expectation values should be calculated.
+                (Default is None which means all subsystems are calculated).
+
+        *Returns*
+            * *expvalues*
+                An :class:`pycppqed.expvalues.ExpectationValuesCollection`.
+        """
         if subsystems is None:
             subsystems = range(len(self.subsystems))
         evs = []
@@ -61,15 +112,29 @@ class QuantumSystem:
         return "%s(%s)" % (clsname, ", ".join(map(str, self.subsystems)))
 
 
-class Particle:
+class Particle(QuantumSystem):
     """
     A class representing a single particle.
     """
-    def __init__(self, statevector, number=0):
-        self.statevector = statevector
-        self.number = number
-
     def expvalues(self, k=True, x=True):
+        r"""
+        Calculate the default expectation values for this particle.
+
+        *Arguments*
+            * *k* (optional)
+                If True all k related expectation values are calculated. That
+                means :math:`\langle k \rangle` and :math:`Var(k)`.
+                (Default is True)
+
+            * *x* (optional)
+                If True all x related expectation values are calculated. That
+                means :math:`\langle x \rangle` and :math:`\Delta x`.
+                (Default is True)
+
+        *Returns*
+            * *expvalues*
+                A :class:`pycppqed.expvalues.ExpectationValuesCollection`.
+        """
         number = self.number
         sv = self.statevector
         evs = []
@@ -96,19 +161,30 @@ class Particle:
             titles.append("Std(x)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
-    def __str__(self):
-        return self.__class__.__name__
 
-
-class Mode:
+class Mode(QuantumSystem):
     """
     A class representing a single mode.
     """
-    def __init__(self, statevector, number=0):
-        self.statevector = statevector
-        self.number = number
-
     def expvalues(self, n=True, a=True):
+        r"""
+        Calculate the default expectation values for this particle.
+
+        *Arguments*
+            * *n* (optional)
+                If True all n related expectation values are calculated. That
+                means :math:`\langle n \rangle` and :math:`Var(n)`.
+                (Default is True)
+
+            * *a* (optional)
+                If True all a related expectation values are calculated. That
+                means :math:`Re(\langle a \rangle)` and
+                :math:`Im(\langle a \rangle)`. (Default is True)
+
+        *Returns*
+            * *expvalues*
+                A :class:`pycppqed.expvalues.ExpectationValuesCollection`.
+        """
         number = self.number
         sv = self.statevector
         evs = []
@@ -131,9 +207,6 @@ class Mode:
             evs.append(ev_a.imag)
             titles.append("Im(<a>)")
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
-
-    def __str__(self):
-        return self.__class__.__name__
 
 
 SYSTEMS = (
