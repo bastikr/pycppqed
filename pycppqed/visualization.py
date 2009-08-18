@@ -96,9 +96,9 @@ def expvaluetrajectory(evt, show=True, **kwargs):
         * Any other arguments that the pylab plotting command can use.
     """
     import pylab
-    pylab.plot(evs.time, evs, **kwargs)
+    pylab.plot(evt.time, evt, **kwargs)
     pylab.xlabel("time")
-    pylab.ylabel(evs.title)
+    pylab.ylabel(evt.title)
     if show:
         pylab.show()
 
@@ -194,7 +194,7 @@ def compare_expvaluecollections(coll1, coll2, show=True, **kwargs):
     assert len(s1) == len(s2)
     for i in range(len(s1)):
         pylab.figure()
-        _compare_expvaluesubsystem(s1.values()[i], s2.values()[i],
+        _compare_expvaluesubsystems(s1.values()[i], s2.values()[i],
                                         show=False, **kwargs)
         title = "%s vs. %s" % (s1.keys()[i], s2.keys()[i])
         if hasattr(pylab, "suptitle"): # For old versions not available.
