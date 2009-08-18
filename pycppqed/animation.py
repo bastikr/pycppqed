@@ -10,7 +10,7 @@ import numpy
 import tempfile
 import os
 import shutil
-import subprocess
+    
 try:
     import pylab
 except:
@@ -246,6 +246,7 @@ class Animation(gtk.Window):
         self.canvas.plot(self.step)
     
     def save_movie(self, filename, format="avi"):
+        import subprocess
         self.step = 0
         self.canvas.plot(self.step)
         tempdirpath = tempfile.mkdtemp(prefix="pycppqed_movie_")
