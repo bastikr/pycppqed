@@ -151,7 +151,7 @@ class Particle(QuantumSystem):
             titles.append("Var(k)")
         if x:
             sv_x = sv.fft(number)
-            X = numpy.linspace(-numpy.pi, numpy.pi, k_dim)
+            X = numpy.linspace(-numpy.pi, numpy.pi, k_dim, endpoint=False)
             ev = sv_x.diagexpvalue((X, X**2), indices=number, multi=True)
             ev_x = ev[0]*2*numpy.pi/k_dim
             std_x = numpy.sqrt(ev[1]*2*numpy.pi/k_dim - ev_x**2)
