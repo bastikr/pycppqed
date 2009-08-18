@@ -4,7 +4,9 @@
 PyCppQED Reference
 ==================
 
-This document lists all classes and functions implemented in PyCppQED.
+This document lists all classes and functions implemented in PyCppQED. It's
+recommended to read the :ref:`user_guide` first and only use the Reference to look
+up specific classes and methods.
 
 .. contents::
     :depth: 3

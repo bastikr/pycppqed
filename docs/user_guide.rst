@@ -13,6 +13,7 @@ documentation about all modules, classes and functions look into the
     :backlinks: top
 
 
+
 Introduction
 ============
 
@@ -22,24 +23,53 @@ programming language of everyone, PyCppQED extends this framework with useful
 functionality:
 
  * Import C++QED output files into python.
- * Export this data as `Matlab`_ *.mat* files.
+ * Export this data as `Matlab`_ ``.mat`` files.
  * Fast and easy visualization/animation of imported data.
- * Generating arbitrary initial condition vectors for C++QED. 
+ * Generating arbitrary initial conditions for C++QED. 
+
+
+
+Requirements
+============
+
+**Mandatory:**
+    * `Python`_:
+        The python interpreter. At least version 2.3 but not 3.x.
+
+    * `NumPy`_:
+        A numerical package for python. Provides fast N-dimensional array
+        manipulation.
+
+**Optional:**
+    * `Matplotlib`_:
+        A plotting library. It is needed for any kind of visualization. (For
+        3D plots at least 0.99 is needed)
+
+    * `SciPy`_:
+        Library providing scientific algorithms. It is needed for exporting
+        numpy arrays as ``.mat`` files and importing ``.mat`` files as numpy
+        arrays.
+
+    * `PyGTK`_:
+        GTK bindings for python. It is needed for animations.
+
 
 
 Installation
 ============
 
 It's neither possible nor necessary to install PyCppQED. Just take care that
-the base directory (where the setup.py file lives) is on your PYTHONPATH. 
+the base directory (where the :file:`setup.py` file lives) is on your
+:envvar:`PYTHONPATH`. 
 Optionally there is a C extension which speeds up importing C++QED output
 files. To get this extension working go to the base directory and type::
 
-    python setup.py build
+    $ python setup.py build
 
 This will compile the extension file and save it to a path like
-*build/lib.linux-i686-2.6/cio.so* relative to the base directory. Copy this
-file into the pycppqed directory and enjoy the speed.
+:file:`build/lib.linux-i686-2.6/cio.so` relative to the base directory. Copy
+this file into the pycppqed directory and enjoy the speed.
+
 
 
 Overview
@@ -66,30 +96,103 @@ PyCppQED has a strict modular design:
    are implemented in :mod:`pycppqed.animation`.
 
 
+
 Usage
 =====
 
-All following commands assume that PyCppQED is already imported::
+PyCppQED can be used either from scripts but also interactively.
+
+
+Scripts
+-------
+
+Scripts are simple text files with valid python code that can be executed by
+invoking the python interpreter with the name of the script as first argument::
+
+    $ python myscript.py
+
+
+Interactive
+-----------
+
+To use python interactively just invoke the interpreter without arguments::
+    
+    $ python
+    Python 2.6.2 (r262:71600, Aug 17 2009, 10:52:48)
+    [GCC 4.1.2 20080704 (Red Hat 4.1.2-44)] on linux2
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>>
+
+A good enhancement to the standard python interpreter is `IPython`_::
+
+    $ ipython
+    Python 2.4.3 (#1, Jul 27 2009, 17:56:30)
+    Type "copyright", "credits" or "license" for more information.
+
+    IPython 0.8.4 -- An enhanced Interactive Python.
+    ?         -> Introduction and overview of IPython's features.
+    %quickref -> Quick reference.
+    help      -> Python's own help system.
+    object?   -> Details about 'object'. ?object also works, ?? prints more.
+
+    In [1]:
+
+It provides:
+
+    * **Tab completion** which allows easy inspection of modules and objects::
+        
+        In [3]: file.re
+        file.read       file.readinto   file.readline   file.readlines
+
+        In [3]: file.read
+
+        
+    * **Easy Inspection**::
+
+        In [3]: file.read?
+        Type:           method_descriptor
+        Base Class:     <type 'method_descriptor'>
+        String Form:    <method 'read' of 'file' objects>
+        Namespace:      Python builtin
+        Docstring:
+            read([size]) -> read at most size bytes, returned as a string.
+
+            If the size argument is negative or omitted, read until EOF is
+            reached. Notice that when in non-blocking mode, less data than what
+            was requested may be returned, even if no size parameter was given.
+
+    * **Many more features ...**
+
+
+Import PyCppQED
+---------------
+
+To use PyCppQED you have to import it. This is done using an import statement::
 
     >>> import pycppqed as qed
+
+From now on all commands will assume that PyCppQED is already imported with
+this statement. Now you are ready to do a lot of fancy stuff with PyCppQED!
+The next section gives examples how to achieve common tasks.
+
 
 
 How to ...
 ==========
 
-Split up C++QED output file into standard output and state vectors
-------------------------------------------------------------------
+Split up a C++QED output file into standard output and state vectors
+--------------------------------------------------------------------
 
-When a C++QED script is invoked using the :option:`svdc` argument state vectors
+When a C++QED script is invoked using the :option:`svdc` argument, state vectors
 are written into the output file between the calculated expectation values.
 With PyCppQED it's easy to extract the state vectors into own files and
-getting a standard C++QED output file.
+getting a standard C++QED output file::
 
     >>> qed.io.split_cppqed("ring.dat", "newring.dat")
 
-This writes the standard output file to :file:`newring` and the state vectors
-into separate files named :file:`newring_/{time/}.dat.sv` where :token:`time` is
-substituted by the time when this state vector was reached.
+This writes the standard output file to :file:`newring.dat` and the state
+vectors into separate files named :file:`newring_{time}.dat.sv` where
+:token:`time` is substituted by the time when this state vector was reached.
 
 
 .. _import2python:
@@ -120,7 +223,7 @@ If you want to use `Matlab`_ or `Octave`_ for further processing of the data
 you can use PyCppQED to convert a C++QED output file into a *.mat* file.
 First, we have to load the file like in :ref:`import2python`. The obtained 
 objects (or only parts of it, or any other array ...) can be saved with
-the :meth:`scipy.io.savemat` function::
+the :func:`scipy.io.savemat` function::
 
     >>> import scipy.io
     >>> scipy.io.savemat("out.mat", {"evs":evs, "svs":qs.statevector})
@@ -129,37 +232,218 @@ This file can be used from `Matlab`_ and `Octave`_:
 
 .. code-block:: matlab
 
-    >>> load("out.mat")
+    >> load('out.mat')
+    >> whos
+      Name       Size              Bytes  Class     Attributes
+
+      evs       15x175             21000  double
+      svs        4-D              921600  double    complex
+
+    >> size(svs)
+
+    ans =
+
+         9    64    10    10
+
+
     >>> size(evs)
-    ans = 15   175
-    >>> size(svs)
-    ans = 9   64   10   10
+
+    ans =
+        
+        15   175
+
+.. warning::
+
+    Be aware that old versions of scipy can't properly export arrays with
+    more than 2 dimensions!
+
+
+Generate arbitrary initial conditions
+-------------------------------------
+
+In the module :mod:`pycppqed.initialconditions` are some convenient functions
+that let you easily create common initial conditions. E.g. to create a
+gaussian wave packet in the k-space the following command can be used::
     
+    >>> sv_p = qed.initialconditions.gaussian(x0=1.1, k0=5, sigma=0.3, fin=7)
+    >>> print sv_p
+    StateVector(128)
+
+Or a coherent mode::
+
+    >>> sv_m = qed.initialconditions.coherent(alpha=2, N=20)
+    >>> print sv_m
+    StateVector(20)
+
+To obtain initial conditions for a combined quantum system simply use the
+**\^** operator::
+
+    >>> sv = sv_a ^ sv_m
+    >>> print sv
+    StateVector(128 x 20)
+
+It's easy to create any other initial condition you can think of, by simply
+creating a numpy array with the wanted values and then using the array to
+build a :class:`pycppqed.statevector.StateVector`::
+
+    >>> import numpy as np
+    >>> X = np.linspace(0,10,64) # An array with 64 values between 0 and 10
+    >>> Y = np.sin(X)
+    >>> sv = qed.statevector.StateVector(Y, norm=True)
+    >>> print sv
+    StateVector(64)
+
+
+Export initial conditions as C++QED sv files
+--------------------------------------------
+
+Exporting is done with the :func:`pycppqed.io.save_statevector`::
+
+    >>> sv = qed.statevector.StateVector((1,2,3), norm=True)
+    >>> qed.io.save_statevector("mystatevector.sv", sv)
+
+The created file then looks like::
+
+    # 0 1
+    (0,2)
+    [ (0.267261241912,0.0) (0.534522483825,0.0) (0.801783725737,0.0) ]
+
+
+Calculate standard expectation values
+-------------------------------------
+
+By *standard* expectation values we mean values that are also calculated by
+C++QED. Automatic calculation for those is implemented in
+:mod:`pycppqed.quantumsystem`. All that has to be done is to first create a
+proper quantum system object and then call its :meth:`expvalues` method::
+
+    >>> sv = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> qs = qed.Particle(sv)
+    >>> evs = qs.expvalues()
+    >>> print evs
+    ExpectationValueCollection('<k>', 'Var(k)', '<x>', 'Std(x)')
+    ExpectationValueCollection([ 3.2000+0.j,  1.5625+0.j,  0.5000+0.j, 0.4000+0.j])
+
+It's also possible for combined quantum systems::
+
+    >>> sv_p = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> sv_m = qed.initialconditions.coherent(alpha=2, N=20)
+    >>> sv = sv_p ^ sv_m
+    >>> q = qed.quantumsystem
+    >>> qs = q.QuantumSystemCompound(sv, q.Particle, q.Mode)
+    >>> print qs
+    QuantumSystemCompound(Particle(128), Mode(20))
+    >>> print evs
+    ExpectationValueCollection('<k>', 'Var(k)', '<x>', 'Std(x)', '<n>', 'Var(n)', 'Re(<a>)', 'Im(<a>)')
+    >>> print repr(evs)
+    ExpectationValueCollection([  3.19999997e+00+0.j,   1.56250009e+00+0.j,   4.99999995e-01+0.j,  4.00000001e-01+0.j,   3.99999979e+00+0.j,   3.99999747e+00+0.j,   1.99999990e+00+0.j,   6.41996804e-18+0.j])
     
-Visualization
--------------
 
-There are some convenient shortcuts to visualize the data using 
-`matplotlib`_. Assuming you imported the data as in :ref:`import2python` using
-the :meth:`plot` of :obj:`traj` plots some beautiful graphs::
+We get a quantum system for free if we load a C++QED output file::
 
-    >>> traj.plot()
-
-.. image:: media/thumb_graph1.png
-    :target: media/graph1.png
-
-.. image:: media/thumb_graph2.png
-    :target: media/graph2.png
-
-.. image:: media/thumb_graph3.png
-    :target: media/graph3.png
+    >>> evs, qs = qed.io.load_cppqed("ring.dat")
+    >>> evs_calc = qs.expvalues()
 
 
-Using Trajectory and StateVector classes for further calculations
------------------------------------------------------------------
+Calculate arbitrary expectation values
+--------------------------------------
+
+Expectation values for combined systems are calculated in the following way
+(Assuming the operator only acts on first subsystem):
+
+    .. math::
+
+        \langle \Psi | \hat A (k) | \Psi \rangle =
+                \sum_{k_1 k_2} \langle k_1 | \hat A (k) | k_2 \rangle
+                \sum_m \Psi_{k_1 m}^* \Psi_{k_2 m}
+
+That means the expectation value is determined by specifying the quantity
+:math:`A_{k_1 k_2} = \langle k_1 | \hat A (k) | k_2 \rangle`. E.g. let's 
+calculate the expectation value of the destruction operator of a combined
+system of structure {Particle, Mode}::
+
+    >>> sv_p = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> sv_m = qed.initialconditions.coherent(alpha=0.5, N=5)
+    >>> sv = sv_p ^ sv_m
+    >>> import numpy as np
+    >>> a = np.diag(np.sqrt(np.arange(1,5)), 1)
+    >>> print a
+    [[ 0.          1.          0.          0.          0.        ]
+     [ 0.          0.          1.41421356  0.          0.        ]
+     [ 0.          0.          0.          1.73205081  0.        ]
+     [ 0.          0.          0.          0.          2.        ]
+     [ 0.          0.          0.          0.          0.        ]]
+    >>> ev_a = sv.expvalue(a, 1)
+    >>> print ev_a
+    (0.499933315175-7.96953264544e-18j)
+
+The second argument tells the expvalue method that the operater is only working
+on the second subsystem. (Python starts counting with 0!)
+
+Let's now consider a slightly more complicated example - a combined system of
+the form {Particle, Mode, Mode} and let's try to calculate the expectation
+value for the operator :math:`T = a_1^\dagger a_2 + a_2^\dagger a_1`::
+
+    >>> sv_p = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> sv_m1 = qed.initialconditions.coherent(alpha=0.5, N=5)
+    >>> sv_m2 = qed.initialconditions.coherent(alpha=2, N=20)
+    >>> sv = sv_p ^ sv_m1 ^ sv_m2
+    >>> import numpy as np
+    >>> SV = qed.statevector.StateVector # Define an abbreviation.
+    >>> m1_a = SV(np.diag(np.sqrt(np.arange(1,5)), 1))
+    >>> m1_at = SV(np.diag(np.sqrt(np.arange(1,5)), -1))
+    >>> m2_a = SV(np.diag(np.sqrt(np.arange(1,20)), 1))
+    >>> m2_at = SV(np.diag(np.sqrt(np.arange(1,20)), -1))
+    >>> T = (m1_at ^ m2_a) + (m1_a ^ m2_at)
+    >>> print sv.expvalue(T, (0,1))
+    (1.99973315754-1.54328182927e-20j)
 
 
-.. _C++QED: http://sourceforge.net/projects/cppqed/
-.. _Matlab: http://www.mathworks.com/
-.. _Octave: http://www.gnu.org/software/octave/
-.. _matplotlib: http://matplotlib.sourceforge.net/
+Calculate diagonal expectation values
+-------------------------------------
+
+If we want to calculate the expectation value of an diagonal operator, we can
+use the :meth:`pycppqed.statevector.StateVector.diagexpvalue` method. It takes
+only the diagonal elements of the operator's matrix representation and has
+the advantage to be faster and to need less memory than the
+:meth:`pycppqed.statevector.StateVector.expvalue` method.
+
+A short example::
+
+    >>> sv = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> import numpy as np
+    >>> K = np.arange(-64, 64)
+    >>> print sv.diagexpvalue(K, 0)
+    (3.2+0j)
+
+
+Visualize PyCppQED objects
+--------------------------
+
+There are basically 4 different types of PyCppQED objects which might be
+interesting to look at:
+
+    * :class:`pycppqed.statevector.StateVector`
+    * :class:`pycppqed.statevector.StateVectorTrajectory`
+    * :class:`pycppqed.expvalues.ExpectationValueTrajectory`
+    * :class:`pycppqed.expvalues.ExpectationValueCollection`
+
+All of them are inheriting from :class:`numpy.ndarray` which means you can
+easily plot them using `Matplotlib`_ or `Gnuplot`_. However, PyCppQED
+implements some functions to let you take a quick look on these objects. All
+but the StateVectorTrajectory class have a :meth:`plot` method::
+
+    >>> sv = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> sv.plot()
+
+
+.. _C++QED: http://sourceforge.net/projects/cppqed
+.. _Python: http://python.org
+.. _IPython: http://ipython.scipy.org/moin
+.. _Matlab: http://www.mathworks.com
+.. _Octave: http://www.gnu.org/software/octave
+.. _Gnuplot: http://gnuplot.info
+.. _Matplotlib: http://matplotlib.sourceforge.net
+.. _SciPy: http://scipy.org
+.. _NumPy: http://scipy.org
+.. _PyGTK: http://pygtk.org
