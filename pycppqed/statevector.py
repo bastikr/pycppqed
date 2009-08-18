@@ -262,11 +262,13 @@ class StateVector(numpy.ndarray):
             A = self.reducesquare(_conjugate_indices(indices, self.ndim))
         else:
             A = self^self.conjugate()
+        length = A.ndim
+        index = range(0, length, 2) + range(1, length, 2)
         if multi:
-            evs = [(A*op).sum() for op in operator]
+            evs = [(A*op.transpose(index)).sum() for op in operator]
             return expvalues.ExpectationValueCollection(evs, self.time, title)
         else:
-            return (A*operator).sum()
+            return (A*operator.transpose(index)).sum()
 
     def diagexpvalue(self, operator, indices=None, title=None, multi=False):
         r"""
