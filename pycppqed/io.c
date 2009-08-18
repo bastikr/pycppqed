@@ -1,5 +1,6 @@
 #include <Python.h>
-#include <numpy/arrayobject.h>
+// #include <numpy/arrayobject.h>
+#include <Numeric/arrayobject.h>
 #include <string.h>
 
 static PyObject *parse(PyObject *self, PyObject *args){
