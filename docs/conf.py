@@ -168,13 +168,13 @@ htmlhelp_basename = 'PyCppQEDdoc'
 latex_paper_size = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
-latex_font_size = '11pt'
+latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'PyCppQED.tex', u'PyCppQED Documentation',
-   u'Sebastian Kraemer', 'howto'),
+  ('user_guide', 'PyCppQED.tex', u'PyCppQED User Guide',
+   u'Sebastian Krämer', 'howto'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -193,3 +193,5 @@ latex_use_parts = False
 
 # If false, no module index is generated.
 latex_use_modindex = False
+
+latex_elements = {"printindex": ""}

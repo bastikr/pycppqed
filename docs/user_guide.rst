@@ -8,6 +8,7 @@ This guide explains how to use different features of PyCppQED. For a detailed
 documentation about all modules, classes and functions look into the 
 :ref:`reference`.
 
+
 .. contents::
     :depth: 3
     :backlinks: top
@@ -377,7 +378,7 @@ system of structure {Particle, Mode}::
     >>> print ev_a
     (0.499933315175-7.96953264544e-18j)
 
-The second argument tells the expvalue method that the operater is only working
+The second argument tells the expvalue method that the operator is only working
 on the second subsystem. (Python starts counting with 0!)
 
 Let's now consider a slightly more complicated example - a combined system of
@@ -433,8 +434,80 @@ easily plot them using `Matplotlib`_ or `Gnuplot`_. However, PyCppQED
 implements some functions to let you take a quick look on these objects. All
 but the StateVectorTrajectory class have a :meth:`plot` method::
 
-    >>> sv = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.4, fin=7)
+    >>> sv = qed.initialconditions.coherent(alpha=2.3, N=25)
     >>> sv.plot()
+
+.. image:: media/graph_coherent.png
+    :width: 8cm
+    :height: 6cm
+
+To change the x-axis we can pass an array of x-coordinated to the plot method::
+
+    >>> import numpy as np
+    >>> sv = qed.initialconditions.gaussian(x0=0.5, k0=3.2, sigma=0.05, fin=7)
+    >>> K = np.arange(-64,64)
+    >>> sv.plot(x=K)
+
+.. image:: media/graph_gaussian.png
+    :width: 8cm
+    :height: 6cm
+
+Since Matplotlib version 0.99 it's also possible to draw 3D graphs. This
+can be used for combined systems::
+
+    >>> sv_p = qed.initialconditions.gaussian(x0=0.5, k0=10, sigma=0.1, fin=6)
+    >>> sv_m = qed.initialconditions.coherent(alpha=1.5, N=15)
+    >>> sv = sv_p ^ sv_m
+    >>> import numpy as np
+    >>> K = np.arange(-32,32)
+    >>> sv.plot(x=K)
+
+.. image:: media/graph_gaussian&mode.png
+    :width: 8cm
+    :height: 6cm
+
+The expectation value classes work equivalent. Maybe also useful is the
+function :func:`pycppqed.visualization.compare_expvaluecollections`. As its
+name says it is used to compare two sets of expectation values::
+
+    >>> evs, qs = qed.io.load_cppqed_output("ring.dat")
+    >>> evs_calc = qs.expvalues()
+    >>> qed.visualization.compare_expvalluecollections(evs, evs_calc)
+
+========= ========= =========
+|expval1| |expval2| |expval3|
+========= ========= =========
+
+.. |expval1| image:: media/graph_expvals1.png
+    :width: 5cm
+    :height: 8cm
+
+.. |expval2| image:: media/graph_expvals2.png
+    :width: 5cm
+    :height: 8cm
+.. |expval3| image:: media/graph_expvals3.png
+    :width: 5cm
+    :height: 8cm
+
+
+The only object that is now left, is the 
+:class:`pycppqed.statevector.StateVectorTrajectory` class. It represents the
+time evolution of a state vector. For a 1D system there are already three
+dimensions to plot. This would be possible, but an alternative is to use
+an animation which will also work for 2D systems.
+Animations are implemented as interactive window, but it's also possible
+to save movies in any format mencoder can write. This functionality
+is only very basic and it may need changes on the source code to obtain
+professional looking movies. However, here is the code::
+
+    >>> import numpy as np
+    >>> time = np.linspace(-np.pi, np.pi, 2**6)
+    >>> g = qed.initialconditions.gaussian
+    >>> svt = [g(sigma=t) ^ g(sigma=0.15-t) for t in time]
+    >>> svt.animate()
+
+And here is the example movie: `animation.avi <_static/animation.avi>`_
+
 
 
 .. _C++QED: http://sourceforge.net/projects/cppqed
