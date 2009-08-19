@@ -2,7 +2,7 @@ from distutils.core import setup, Extension, Command
 import unittest
 from pycppqed import test_initialconditions, test_io, test_statevector
 
-cio = Extension("cio", sources=["pycppqed/io.c"])
+cio = Extension("pycppqed.cio", sources=["pycppqed/io.c"])
 
 testsuits = {
     "initialconditions": test_initialconditions.suite(),
@@ -23,8 +23,13 @@ class test(Command):
 
 
 setup(
-    name = "cppqed-scripts",
+    name = "PyCppQED",
     version = "0.1",
+    author = "Sebastian Kraemer",
+    author_email = "basti.kr@gmail.com",
+    url = "http://github.com/bastikr/pycppqed",
+    license = "BSD",
+    packages = ('pycppqed',),
     ext_modules = [cio],
     cmdclass = {
         "test": test,

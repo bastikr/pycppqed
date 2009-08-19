@@ -1,0 +1,46 @@
+PyCppQED
+========
+
+A python library that helps working with C++QED - a framework simulating open
+quantum dynamics written in C++.
+
+
+Download
+--------
+
+The last release:
+
+    http://github.com/bastikr/pycppqed/downloads
+
+
+The actual develpment version:
+
+    $ git clone git://github.com/bastikr/pycppqed.git
+
+
+Documentation
+-------------
+
+Documentation can be downloaded from:
+
+    http://github.com/bastikr/pycppqed/downloads
+
+
+Istallation
+-----------
+
+First, the c extensions have to be build:
+
+    $ python setup.py build
+
+This creates a directory like "build/lib.linux-x86_64-2.4/pycppqed/". Either
+this package can be moved somewhere and used directly or alternatively it can
+be installed:
+
+    $ python setup.py install
+
+
+Bugs and feature requests
+-------------------------
+
+Please write me a mail at basti.kr@gmail.com

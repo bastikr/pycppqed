@@ -8,7 +8,6 @@ This guide explains how to use different features of PyCppQED. For a detailed
 documentation about all modules, classes and functions look into the 
 :ref:`reference`.
 
-
 .. contents::
     :depth: 3
     :backlinks: top
@@ -59,17 +58,16 @@ Requirements
 Installation
 ============
 
-It's neither possible nor necessary to install PyCppQED. Just take care that
-the base directory (where the :file:`setup.py` file lives) is on your
-:envvar:`PYTHONPATH`. 
-Optionally there is a C extension which speeds up importing C++QED output
-files. To get this extension working go to the base directory and type::
+First, the c extensions have to be build::
 
     $ python setup.py build
 
-This will compile the extension file and save it to a path like
-:file:`build/lib.linux-i686-2.6/cio.so` relative to the base directory. Copy
-this file into the pycppqed directory and enjoy the speed.
+This creates a directory like :file:`build/lib.linux-x86_64-2.4/pycppqed/`.
+Either this package can be moved somewhere and used directly (you may want to
+add it's location to the :envvar:`PYTHONPATH`) or alternatively it can be
+installed::
+
+    $ python setup.py install
 
 
 
