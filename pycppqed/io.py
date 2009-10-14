@@ -209,7 +209,7 @@ def load_statevector(filename):
     f.close()
     assert buf.startswith("# ")
     commentstr, datastr = buf.split("\n", 1)
-    time = commentstr[2:commentstr.find(" ", 4)]
+    time = commentstr[2:commentstr.find(" ", 3)]
     ba = _blitz2numpy(datastr)
     return statevector.StateVector(ba, float(time))
 

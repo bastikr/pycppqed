@@ -1,6 +1,7 @@
 import utils
 import quantumsystem
 
+
 class Description:
     """
     A class for working with the comment section of a C++QED output file.
@@ -17,12 +18,11 @@ class Description:
         self.quantumsystem = QuantumSystem(sections[1:-1])
         self.expvalues = ExpectationValues(sections[-1])
 
-    #def __str__(self):
-    #   return "%s\n\n%s\n\n%s" % (self.head, self.subsystems, self.datakey)
 
 QUANTUMSYSTEMS = {}
 for sys in quantumsystem.SYSTEMS:
     QUANTUMSYSTEMS[sys.__name__] = sys
+
 
 class QuantumSystem:
     def __init__(self, buf):
@@ -33,6 +33,7 @@ class QuantumSystem:
                 break
             subs.append(eval(s.split("\n")[1].strip("# "), QUANTUMSYSTEMS))
 
+
 class ExpectationValues:
     """
     A class representing the datakey section of C++QED output files.
@@ -41,10 +42,9 @@ class ExpectationValues:
         sectionstrs = datakeystr.split("\n# ")[1:]
         self.subsystems = subsystems = []
         for sectionstr in sectionstrs:
+            if sectionstr.find(".") == -1: # No Expectation Values!
+                continue
             subsystems.append(ExpectationValuesSubsection(sectionstr))
-
-    #def __str__(self):
-    #    return "Keys:\n  " + "\n  ".join(map(str, self.sections))
 
 
 class ExpectationValuesSubsection:
@@ -55,6 +55,9 @@ class ExpectationValuesSubsection:
         self.name, keystr = sectionstr.split(" ", 1)
         self.entrys = entrys = utils.OrderedDict()
         pos_dot = keystr.find(".")
+        if pos_dot == -1:
+            raise ValueError("Bad formatted Expectation Value String: %s" % \
+                             sectionstr)
         pos_start = 0
         while True:
             pos_nextdot = keystr.find(".", pos_dot+1)
@@ -68,7 +71,5 @@ class ExpectationValuesSubsection:
             value = keystr[pos_dot+1:pos_nextstart].strip()
             entrys[key] = value
             pos_start, pos_dot = pos_nextstart, pos_nextdot
-            
-    #def __str__(self):
-    #    return "%s: '%s'" % (self.name, "', '".join(self.content.values()))
+
 
