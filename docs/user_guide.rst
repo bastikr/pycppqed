@@ -33,6 +33,7 @@ Requirements
 ============
 
 **Mandatory:**
+
     * `Python`_:
         The python interpreter. At least version 2.3 but not 3.x.
 
@@ -41,6 +42,7 @@ Requirements
         manipulation.
 
 **Optional:**
+
     * `Matplotlib`_:
         A plotting library. It is needed for any kind of visualization. (For
         3D plots at least 0.99 is needed)
@@ -48,7 +50,8 @@ Requirements
     * `SciPy`_:
         Library providing scientific algorithms. It is needed for exporting
         numpy arrays as ``.mat`` files and importing ``.mat`` files as numpy
-        arrays.
+        arrays. For exporting multidimensional arrays, at least version 0.7 is
+        needed.
 
     * `PyGTK`_:
         GTK bindings for python. It is needed for animations.
@@ -67,7 +70,7 @@ Either this package can be moved somewhere and used directly (you may want to
 add it's location to the :envvar:`PYTHONPATH`) or alternatively it can be
 installed::
 
-    $ python setup.py install
+    $ python setup.py install --prefix=PATH
 
 
 
@@ -201,7 +204,7 @@ Import a C++QED output file
 
 This is done with the function :func:`pycppqed.io.load_cppqed`::
 
-    >>> evs, qs = qed.io.load_cppqed_output("ring.dat")
+    >>> evs, qs = qed.io.load_cppqed("ring.dat")
 
 This returns two objects which represent the whole information stored
 in the C++QED output file:
@@ -253,8 +256,8 @@ This file can be used from `Matlab`_ and `Octave`_:
 
 .. warning::
 
-    Be aware that old versions of scipy can't properly export arrays with
-    more than 2 dimensions!
+    Be aware that old versions of scipy (older than 0.7) can't properly export
+    arrays with more than 2 dimensions!
 
 
 Generate arbitrary initial conditions
@@ -468,7 +471,7 @@ The expectation value classes work equivalent. Maybe also useful is the
 function :func:`pycppqed.visualization.compare_expvaluecollections`. As its
 name says it is used to compare two sets of expectation values::
 
-    >>> evs, qs = qed.io.load_cppqed_output("ring.dat")
+    >>> evs, qs = qed.io.load_cppqed("ring.dat")
     >>> evs_calc = qs.expvalues()
     >>> qed.visualization.compare_expvalluecollections(evs, evs_calc)
 
