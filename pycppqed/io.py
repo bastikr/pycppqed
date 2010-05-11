@@ -90,7 +90,7 @@ def _numpy2blitz(array):
 
 def _split_cppqed_output(filename, ev_handler, sv_handler):
     """
-    Split a C++QED output file into expextation values and statevectors.
+    Split a C++QED output file into expectation values and statevectors.
 
     *Arguments*
         * *filename*
@@ -169,24 +169,29 @@ def load_cppqed(filename):
         ba = _blitz2numpy(svstr)
         svs.append(statevector.StateVector(ba, t))
     commentstr = _split_cppqed_output(filename, ev_handler, sv_handler)
-    desc = description.Description(commentstr)
+    evs = numpy.array(evs).swapaxes(0,1)
+    svstraj = statevector.StateVectorTrajectory(svs)
+    time = evs[0,:]
     titles = []
     subsystems = utils.OrderedDict()
-    start = 0
-    _systems = desc.quantumsystem.subsystems
-    length = len(_systems)
-    for i, subs in enumerate(desc.expvalues.subsystems):
-        titles.extend(subs.entrys.values())
-        end = len(titles)
-        if 0<i<=length:
-            subsystems["(%s)%s" % (i-1, _systems[i-1].__name__)] = (start, end)
-        start = end
-    evs = numpy.array(evs).swapaxes(0,1)
-    time = evs[0,:]
+    try:
+        desc = description.Description(commentstr)
+    except:
+        print "Error while reading commentsection, please contact maintainer."
+        qs = quantumsystem.QuantumSystemCompound(svstraj)
+    else:
+        start = 0
+        _systems = desc.quantumsystem.subsystems
+        length = len(_systems)
+        for i, subs in enumerate(desc.expvalues.subsystems):
+            titles.extend(subs.entrys.values())
+            end = len(titles)
+            if 0<i<=length:
+                subsystems["(%s)%s" % (i-1, _systems[i-1].__name__)] = (start, end)
+            start = end
+        qs = quantumsystem.QuantumSystemCompound(svstraj, *_systems)
     evstraj = expvalues.ExpectationValueCollection(evs, time=time,
                             titles=titles, subsystems=subsystems, copy=False)
-    svstraj = statevector.StateVectorTrajectory(svs)
-    qs = quantumsystem.QuantumSystemCompound(svstraj, *_systems)
     return evstraj, qs
 
 def load_statevector(filename):

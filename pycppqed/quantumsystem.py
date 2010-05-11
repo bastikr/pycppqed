@@ -55,7 +55,7 @@ class QuantumSystemCompound(QuantumSystem):
 
     *Arguments*
         * *statevector*
-            A :class:`pycppqed.statevector.StateVector` or 
+            A :class:`pycppqed.statevector.StateVector` or
             :class:`pycppqed.statevector.StateVectorTrajectory` describing
             this system.
 
@@ -82,7 +82,7 @@ class QuantumSystemCompound(QuantumSystem):
 
         *Arguments*
             * *subsystems* (optional)
-                A list of integers specifying for which subsystems the 
+                A list of integers specifying for which subsystems the
                 expectation values should be calculated.
                 (Default is None which means all subsystems are calculated).
 
@@ -209,8 +209,18 @@ class Mode(QuantumSystem):
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 
+class QBit(QuantumSystem):
+    """
+    A class representing a single qubit.
+    """
+    def expvalues(self):
+        # TODO: implement standard expvalues for QBit.
+        return []
+
+
 SYSTEMS = (
     Particle,
     Mode,
+    QBit,
     )
 
