@@ -44,14 +44,14 @@ class StateVector(numpy.ndarray):
         * *norm* (optional)
             If set True the StateVector will be automatically normalized.
             (Default is False)
-        
+
         * Any other argument that a numpy array takes. E.g. ``copy=False`` can
           be used so that the StateVector shares the data storage with the
           given numpy array.
 
     Most useful is maybe the tensor product which lets you easily calculate
     state vectors for combined systems::
-        
+
         >>> sv1 = StateVector((1,2,3))
         >>> sv2 = StateVector((3,4,0), norm=True)
         >>> sv = sv1 ^ sv2
@@ -63,7 +63,7 @@ class StateVector(numpy.ndarray):
                [ 1.8,  2.4,  0. ]])
 
     The tensor product is abbreviated by the "^" operator. But be aware that
-    this operator follows the built-in operator precedence - that means "+", 
+    this operator follows the built-in operator precedence - that means "+",
     "*" etc. have **higher** precedence!
     """
     def __new__(cls, data, time=None, norm=False, **kwargs):
@@ -80,7 +80,7 @@ class StateVector(numpy.ndarray):
     def __array_finalize__(self, obj):
         self.dimensions = obj.shape
         self.time = getattr(obj, "time", 0)
-    
+
     def __str__(self):
         clsname = self.__class__.__name__
         return "%s(%s)" % (clsname, " x ".join(map(str, self.dimensions)))
@@ -167,7 +167,7 @@ class StateVector(numpy.ndarray):
     def reducesquare(self, indices):
         r"""
         Calculate the reduced Psi-square tensor.
-        
+
         *Usage*
             >>> sv1 = StateVector((0,1,2,1,0), norm=True)
             >>> sv2 = StateVector((1,0,1), norm=True)
@@ -258,7 +258,7 @@ class StateVector(numpy.ndarray):
         first expression is the matrix representation of the given operator
         in the same basis as the StateVector.
         """
-        if indices is not None:    
+        if indices is not None:
             A = self.reducesquare(_conjugate_indices(indices, self.ndim))
         else:
             A = self^self.conjugate()
@@ -325,7 +325,7 @@ class StateVector(numpy.ndarray):
     def outer(self, array):
         r"""
         Return the outer product between this and the given StateVector.
-        
+
         *Usage*
             >>> sv = StateVector((0,1,2), norm=True)
             >>> print repr(sv.outer(StateVector((3,4), norm=True)))
@@ -380,7 +380,7 @@ class StateVectorTrajectory(numpy.ndarray):
           with the given numpy array.
 
     Most methods are simple mapped to all single StateVectors. For more
-    documentation regarding these methods look into the docstrings of the 
+    documentation regarding these methods look into the docstrings of the
     corresponding :class:`StateVector` methods.
     """
     def __new__(cls, data, time=None, **kwargs):
@@ -489,7 +489,7 @@ class StateVectorTrajectory(numpy.ndarray):
 
         See also: :meth:`StateVector.diagexpvalue`
         """
-        evs = self.map(lambda sv:sv.diagexpvalue(operator, indices, 
+        evs = self.map(lambda sv:sv.diagexpvalue(operator, indices,
                             multi=multi), False)
         if not multi:
             return expvalues.ExpectationValueTrajectory(evs, self.time, titles)

@@ -10,7 +10,7 @@ import numpy
 import tempfile
 import os
 import shutil
-    
+
 try:
     import pylab
 except:
@@ -121,7 +121,7 @@ class Canvas(FigureCanvasGTKAgg):
     def fast_plot(self, step):
         return self.plot(step)
 
-    
+
 
 class StateVectorCanvas(Canvas):
     def __init__(self, figure, x, data, lims):
@@ -162,7 +162,7 @@ class StateVectorCanvas3D(Canvas):
         self.lims = lims
         self.ax = axes3d.Axes3D(figure)
         self._lines = ()
- 
+
     def plot(self, step):
         for line in self._lines:
             line.remove()
@@ -195,7 +195,7 @@ class Animation(gtk.Window):
         self._play = False
         self.canvas = canvas
         self.toolbar = AnimationToolbar(self.canvas, self, steps)
-        
+
         self.connect("destroy", lambda x: gtk.main_quit())
         self.toolbar.playbutton.connect("clicked-play", self.handle_play)
         self.toolbar.playbutton.connect("clicked-pause", self.handle_pause)
@@ -244,7 +244,7 @@ class Animation(gtk.Window):
 
     def handle_resize(self, *args):
         self.canvas.plot(self.step)
-    
+
     def save_movie(self, filename, format="avi"):
         import subprocess
         self.step = 0
@@ -263,8 +263,8 @@ class Animation(gtk.Window):
         COMMAND = ('mencoder',
                 'mf://' + os.path.join(tempdirpath, "*.png"),
                 '-mf',
-                'type=png:w=%s:h=%s:fps=25' % (w, h), 
-                #'type=png:w=%s:h=%s:fps=25' % (640, 480), 
+                'type=png:w=%s:h=%s:fps=25' % (w, h),
+                #'type=png:w=%s:h=%s:fps=25' % (640, 480),
                 '-ovc',
                 'lavc',
                 '-lavcopts',
@@ -306,11 +306,11 @@ def animate_statevector(svtraj, x=None, y=None, re=False, im=False, abs=True):
         * *re* (optional)
             If set True the real part of the state vectors will be animated.
             (Default is False)
-        
+
         * *im* (optional)
             If set True the imaginary part of the state vectors will be
             animated. (Default is False)
-        
+
         * *abs* (optional)
             If set True the absolute square of the state vectors will be
             animated. (Default is True)

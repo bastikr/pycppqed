@@ -67,7 +67,7 @@ def statevector(sv, x=None, y=None, re=False, im=False, abs=True, show=True,
             y = numpy.arange(sv.shape[1])
         X, Y = numpy.meshgrid(y,x)
         from mpl_toolkits.mplot3d import axes3d
-        
+
         ax = axes3d.Axes3D(pylab.gcf())
         for i, title in enumerate(titles):
             #pylab.subplot(length, 1, i+1)
@@ -171,7 +171,7 @@ def _compare_expvaluesubsystems(subs1, subs2, show=True):
 def compare_expvaluecollections(coll1, coll2, show=True, **kwargs):
     """
     Plot all subsystems of two ExpectationValueCollections.
-    
+
     *Arguments*
         * *coll1*
             First :class:`pycppqed.expvalues.ExpectationValue.Collection`.

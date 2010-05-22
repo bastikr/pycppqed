@@ -28,7 +28,7 @@ class BlitzTestCase(unittest.TestCase):
             self.assert_((numpy.abs(a-na1)<eps).all())
             self.assert_((numpy.abs(a-na2)<eps).all())
         io.cio = cio
-    
+
     def test_cblitz(self):
         if io.cio is None:
             raise Exception("Can't test c extension!")

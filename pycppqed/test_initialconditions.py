@@ -43,7 +43,7 @@ class InitialConditionsTestCase(unittest.TestCase):
             ev_a = sv.expvalue(a)
             ev_n = sv.expvalue(numpy.dot(at,a))
             self.assert_(numpy.abs(ev_a - alpha)<eps)
-            self.assert_(numpy.abs(ev_n - numpy.abs(alpha)**2)<eps) 
+            self.assert_(numpy.abs(ev_n - numpy.abs(alpha)**2)<eps)
 
 
 def suite():

@@ -41,7 +41,7 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
     is the Fourier transformed of the following expression:
 
         .. math::
-            
+
             \Psi(x) = \frac {1} {\sqrt[4]{2 \pi}} *
                             e^{-\frac {x^2} {4*{\Delta x}^2}}
     """

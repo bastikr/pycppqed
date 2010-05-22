@@ -82,7 +82,7 @@ class ExpectationValueCollection(numpy.ndarray):
 
         * *time* (optional)
             A 1d array or list specifying the points of time.
-            
+
         * *titles* (optional)
             A list of names for the expectation values. (The names can be any
             unicode string)
@@ -91,7 +91,7 @@ class ExpectationValueCollection(numpy.ndarray):
             Dictionary specifying subsystems. E.g. ``{"Mode1" : (1,3)}``.
 
         * Any other argument that a numpy array can use for creation. E.g.
-          ``copy = False`` can be used so that the 
+          ``copy = False`` can be used so that the
           ExpectationValueCollection shares the data storage with the given
           numpy array.
     """

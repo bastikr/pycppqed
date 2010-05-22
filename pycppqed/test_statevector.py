@@ -40,7 +40,7 @@ class StateVectorTestCase(unittest.TestCase):
         self.assertEqual(rsv.shape, (3,3))
         rsv = sv.reducesquare(2)
         self.assertEqual(rsv.shape, (3,4,3,4))
-        
+
     def test_fft(self):
         sv_k = initialconditions.gaussian(0.5,2,0.3)
         sv_x = sv_k.fft()
@@ -110,11 +110,11 @@ class StateVectorTrajectoryTestCase(unittest.TestCase):
         ev = sv.diagexpvalue(X)
         self.assert_(isinstance(ev, expvalues.ExpectationValueTrajectory))
         self.assertEqual(ev.shape, (20,))
-        
+
         ev = sv.diagexpvalue((X,X+2), multi=True)
         self.assert_(isinstance(ev, expvalues.ExpectationValueCollection))
         self.assertEqual(ev.shape, (2,20))
-        
+
 
 def suite():
     load = unittest.defaultTestLoader.loadTestsFromTestCase
