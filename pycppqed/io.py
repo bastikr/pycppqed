@@ -212,8 +212,12 @@ def load_statevector(filename):
     f = open(filename)
     buf = f.read()
     f.close()
-    assert buf.startswith("# ")
-    commentstr, datastr = buf.split("\n", 1)
+    if buf.startswith("# "): # Syntax of old statevector files.
+        commentstr, datastr = buf.split("\n", 1)
+    else:
+        datastr, commentstr = buf.rstrip(" \n\t").rsplit("\n", 1)
+        if not commentstr.startswith("# "):
+            raise ValueError("Not a valid statevector file.")
     time = commentstr[2:commentstr.find(" ", 3)]
     ba = _blitz2numpy(datastr)
     return statevector.StateVector(ba, float(time))
@@ -235,8 +239,8 @@ def save_statevector(filename, sv):
     """
     isfile = False
     f = open(filename, "w")
-    f.write("# %s 1\n" % sv.time)
     f.write(_numpy2blitz(sv))
+    f.write("\n# %s 1\n" % sv.time)
     f.close()
 
 def split_cppqed(readpath, writepath, header=True):
