@@ -66,7 +66,7 @@ class StateVector(numpy.ndarray):
     this operator follows the built-in operator precedence - that means "+",
     "*" etc. have **higher** precedence!
     """
-    def __new__(cls, data, time=None, norm=False, **kwargs):
+    def __new__(cls, data, time=None, norm=False, basis=None, **kwargs):
         array = numpy.array(data, **kwargs)
         if norm:
             array = normalize(array)
@@ -75,11 +75,14 @@ class StateVector(numpy.ndarray):
             array.time = time
         elif hasattr(data, "time"):
             array.time = data.time
+        if basis is not None:
+            array.basis = basis
         return array
 
     def __array_finalize__(self, obj):
         self.dimensions = obj.shape
         self.time = getattr(obj, "time", 0)
+        self.basis = getattr(obj, "basis", None)
 
     def __str__(self):
         clsname = self.__class__.__name__
@@ -392,7 +395,8 @@ class StateVectorTrajectory(numpy.ndarray):
             array.time = time
         svs = [None]*array.shape[0]
         for i, entry in enumerate(array):
-            svs[i] = StateVector(entry, time=array.time[i], copy=False)
+            basis = data[i].basis if hasattr(data[i], "basis") else None
+            svs[i] = StateVector(entry, time=array.time[i], basis=basis, copy=False)
         array.statevectors = svs
         return array
 

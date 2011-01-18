@@ -88,7 +88,7 @@ def _numpy2blitz(array):
     dimensionstr = " x ".join(dims)
     return "%s \n[ %s ]\n\n" % (dimensionstr, datastr)
 
-def _split_cppqed_output(filename, ev_handler, sv_handler):
+def _split_cppqed_output(filename, ev_handler, sv_handler, basis_handler):
     """
     Split a C++QED output file into expectation values and statevectors.
 
@@ -102,6 +102,9 @@ def _split_cppqed_output(filename, ev_handler, sv_handler):
 
         * *sv_handler*
             A function that will be called when a Blitz array is found.
+
+        * *basis_handler*
+            A function that will be called when a basis vector is found.
 
     *Returns*
         * *commentstr*
@@ -124,9 +127,17 @@ def _split_cppqed_output(filename, ev_handler, sv_handler):
     while pos < length:
         # Find start of next state vector.
         sv_start = buf.find("\n(", pos)
+        ev_end = buf.find("\n#BASIS", pos, sv_start)
+        if ev_end == -1:
+            ev_end = sv_start
+        else:
+            basis_start = sv_start
+            basis_end = buf.find("]", basis_start)
+            sv_start = buf.find("\n(", basis_end)
+            basis_handler(buf[basis_start+1:basis_end+1])
         # Handle the expectation values that were calculated before the state
         # vector.
-        map(ev_handler, buf[pos:sv_start].splitlines())
+        map(ev_handler, buf[pos:ev_end].splitlines())
         # If there is no other state vector stop searching.
         if sv_start == -1:
             break
@@ -158,6 +169,7 @@ def load_cppqed(filename):
     # Define handlers for state vector strings and expectation values strings.
     evs = [] # Expectation values
     svs = [] # State vectors
+    basis = [None] # Holds last basis vector
     def ev_handler(evstr):
         parts = evstr.split("\t")
         ev = []
@@ -167,8 +179,11 @@ def load_cppqed(filename):
     def sv_handler(svstr):
         t = evs[-1][0]
         ba = _blitz2numpy(svstr)
-        svs.append(statevector.StateVector(ba, t))
-    commentstr = _split_cppqed_output(filename, ev_handler, sv_handler)
+        svs.append(statevector.StateVector(ba, t, basis=basis[0]))
+    def basis_handler(svstr):
+        basis[0] = _blitz2numpy(svstr)
+    commentstr = _split_cppqed_output(filename, ev_handler, sv_handler,
+                                      basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
     svstraj = statevector.StateVectorTrajectory(svs)
     time = evs[0,:]
@@ -267,15 +282,28 @@ def split_cppqed(readpath, writepath, header=True):
     """
     evs = [] # Expectation values
     def sv_handler(svstr):
-        if evs:
-            ev = evs[-1]
-            t = float(ev[:ev.find(" ")])
-            f = open("%s_%06f.sv" % (writepath, t), "w")
-            if header:
-                f.write("# %s 1\n" % t)
-            f.write(svstr)
-            f.close()
-    commentstr = _split_cppqed_output(readpath, evs.append, sv_handler)
+        if not evs:
+            raise ValueError("Can't find timestamps in given file.")
+        ev = evs[-1]
+        t = float(ev[:ev.find(" ")])
+        f = open("%s_%06f.sv" % (writepath, t), "w")
+        if header:
+            f.write("# %s 1\n" % t)
+        f.write(svstr)
+        f.close()
+
+    def basis_handler(svstr):
+        if not evs:
+            raise ValueError("Can't find timestamps in given file.")
+        ev = evs[-1]
+        t = float(ev[:ev.find(" ")])
+        f = open("%s_%06f_basis.sv" % (writepath, t), "w")
+        if header:
+            f.write("# %s 1\n" % t)
+        f.write(svstr)
+        f.close()
+    commentstr = _split_cppqed_output(readpath, evs.append, sv_handler,
+                                      basis_handler)
     f = open(writepath, "w")
     f.write(commentstr)
     f.write("\n\n%s\n" % "\n".join(evs) )
