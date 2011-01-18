@@ -14,6 +14,7 @@ All classes in this module inherit from :class:`QuantumSystem`.
 """
 import numpy
 import expvalues
+import animation
 import utils
 
 class QuantumSystem:
@@ -209,6 +210,39 @@ class Mode(QuantumSystem):
         return expvalues.ExpectationValueCollection(evs, sv.time, titles)
 
 
+class CoherentMode(QuantumSystem):
+    """
+    A class representing a single mode in a coherent basis.
+    """
+    def expvalues(self, n=True, a=True):
+        number = self.number
+        sv = self.statevector
+        evs = []
+        titles = []
+        m_dim = self.statevector.dimensions[number]
+        if n:
+            ev_n = []
+            for sv_t in sv.statevectors:
+                ev_n.append(numpy.abs(numpy.dot(sv_t.conj(),
+                            numpy.dot(sv_t.basis.ntrafo, sv_t))))
+            titles.append("<n>")
+            evs.append(numpy.array(ev_n, dtype=numpy.float64))
+        if a:
+            ev_a = []
+            for sv_t in sv.statevectors:
+                ev_a.append(numpy.dot(sv_t.conj(),
+                            numpy.dot(sv_t.basis.ntrafo,sv_t*sv_t.basis.states)))
+            ev_a = numpy.array(ev_a, dtype=numpy.complex128)
+            titles.append("Re(<a>)")
+            evs.append(ev_a.real)
+            titles.append("Im(<a>)")
+            evs.append(ev_a.imag)
+
+        return expvalues.ExpectationValueCollection(evs, sv.time, titles)
+
+    animate = lambda self:animation.animate_coherent_basis(self)
+
+
 class QBit(QuantumSystem):
     """
     A class representing a single qubit.
@@ -221,6 +255,7 @@ class QBit(QuantumSystem):
 SYSTEMS = (
     Particle,
     Mode,
+    CoherentMode,
     QBit,
     )
 

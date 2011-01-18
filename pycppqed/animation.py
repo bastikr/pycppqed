@@ -352,3 +352,62 @@ def animate_statevector(svtraj, x=None, y=None, re=False, im=False, abs=True):
     canvas = Animation(canvas, length)
     gtk.main()
 
+class CoherentBasisCanvas(Canvas):
+    def __init__(self, figure, traj, ev_a_re, ev_a_im, quality):
+        Canvas.__init__(self, figure)
+        self.traj = traj
+        self.quality = quality
+        self.ev_a_re = ev_a_re
+        self.ev_a_im = ev_a_im
+        self.spcount = len(traj)
+        states = []
+        for sv in traj.statevectors:
+            states.append(sv.basis.states)
+        self.states = numpy.array(states, dtype=numpy.complex128)
+        self.xlims = (self.states.real.min()-1, self.states.real.max()+1)
+        self.ylims = (self.states.imag.min()-1, self.states.imag.max()+1)
+
+    def plot(self, step):
+        axes = self.figure.add_subplot(1,1,1)
+        axes.clear()
+        axes.plot(self.ev_a_re[:step], self.ev_a_im[:step])
+        axes.scatter(self.states[step].real, self.states[step].imag,
+                  c=numpy.log(self.quality[step]), cmap=pylab.cm.Blues)
+        axes.set_xlim(self.xlims)
+        axes.set_ylim(self.ylims)
+        self.draw()
+        """
+        self._axes = []
+        self._lines = []
+        for i in range(self.spcount):
+            self._axes.append(self.figure.add_subplot(self.spcount, 1, i+1))
+            self._lines.append(self._axes[-1].plot(self.x, self.data[i][step],
+                                                   "b", animated=True)[0])
+            self._axes[-1].set_ylim(self.lims[i])
+        self.draw()
+        self._background = self.copy_from_bbox(self.figure.bbox)
+        for i in range(self.spcount):
+            self._axes[i].draw_artist(self._lines[i])
+            self.blit(self._axes[i].bbox)
+            """
+    """
+    def fast_plot(self, step):
+        self.restore_region(self._background)
+        for i in range(self.spcount):
+            self._lines[i].set_ydata(self.data[i][step])
+            self._axes[i].draw_artist(self._lines[i])
+            self.blit(self._axes[i].bbox)
+    """
+
+def animate_coherent_basis(qs):
+    traj = qs.statevector
+    fig = pylab.gcf()
+    fig.clear()
+    ev_q = []
+    for sv_t in traj.statevectors:
+        ev_q.append(numpy.abs(sv_t.conj(),
+                    numpy.dot(sv_t.basis.ntrafo, sv_t)))
+    evs = qs.expvalues()
+    canvas = CoherentBasisCanvas(fig, traj, evs[1], evs[2], ev_q)
+    animation = Animation(canvas, len(traj.time))
+    gtk.main()

@@ -26,11 +26,21 @@ for sys in quantumsystem.SYSTEMS:
 
 class QuantumSystem:
     def __init__(self, buf):
-        buf[0] = buf[0][buf[0].find("# Subsystem Nr."):]
         self.subsystems = subs = []
+        index = buf[0].find("# Subsystem Nr.")
+        if index == -1:
+            try:
+                self.subsystems.append(
+                    eval(buf[0].strip("\n").split("\n")[0].strip("# "),
+                         QUANTUMSYSTEMS)
+                )
+                return
+            except BaseException:
+                pass
+        buf[0] = buf[0][index:]
         for s in buf:
             if not s.startswith("# Subsystem Nr."):
-                break
+                    break
             subs.append(eval(s.split("\n")[1].strip("# "), QUANTUMSYSTEMS))
 
 

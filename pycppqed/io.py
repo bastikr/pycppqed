@@ -13,6 +13,7 @@ import expvalues
 import quantumsystem
 import description
 import utils
+import pycppqed
 try:
     import cio
 except:
@@ -127,14 +128,15 @@ def _split_cppqed_output(filename, ev_handler, sv_handler, basis_handler):
     while pos < length:
         # Find start of next state vector.
         sv_start = buf.find("\n(", pos)
-        ev_end = buf.find("\n#BASIS", pos, sv_start)
+        ev_end = buf.find("\n#", pos, sv_start)
         if ev_end == -1:
             ev_end = sv_start
         else:
+            name = buf[ev_end+2:sv_start].strip()
             basis_start = sv_start
             basis_end = buf.find("]", basis_start)
             sv_start = buf.find("\n(", basis_end)
-            basis_handler(buf[basis_start+1:basis_end+1])
+            basis_handler(name, buf[basis_start+1:basis_end+1])
         # Handle the expectation values that were calculated before the state
         # vector.
         map(ev_handler, buf[pos:ev_end].splitlines())
@@ -180,8 +182,10 @@ def load_cppqed(filename):
         t = evs[-1][0]
         ba = _blitz2numpy(svstr)
         svs.append(statevector.StateVector(ba, t, basis=basis[0]))
-    def basis_handler(svstr):
-        basis[0] = _blitz2numpy(svstr)
+    def basis_handler(name, svstr):
+        states = _blitz2numpy(svstr)
+        BASES = pycppqed.BASES
+        basis[0] = BASES[name](states) if name in BASES else states
     commentstr = _split_cppqed_output(filename, ev_handler, sv_handler,
                                       basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
@@ -292,7 +296,7 @@ def split_cppqed(readpath, writepath, header=True):
         f.write(svstr)
         f.close()
 
-    def basis_handler(svstr):
+    def basis_handler(name, svstr):
         if not evs:
             raise ValueError("Can't find timestamps in given file.")
         ev = evs[-1]
