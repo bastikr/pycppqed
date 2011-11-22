@@ -2,8 +2,12 @@
 Provides functionality to calculate in coherent bases.
 """
 import itertools
-import mpmath as mp
 import numpy
+
+try:
+    import mpmath as mp
+except:
+    print "mpmath not found - Calculating coherent bases not posible"
 
 class CoherentBasis:
     """
