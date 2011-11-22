@@ -15,7 +15,7 @@ static PyObject *parse(PyObject *self, PyObject *args){
     dims[0] = length;
     PyArrayObject *array = (PyArrayObject *)
         PyArray_FromDims(1, dims, PyArray_CDOUBLE);
-    
+
     // Create pointer to data.
     double *data;
     data = (double*)array->data;
@@ -24,8 +24,8 @@ static PyObject *parse(PyObject *self, PyObject *args){
     strtok(datastr, "(");
     int i;
     for (i=0; i<2*length; i+=2){
-        data[i] = strtod(strtok(NULL, ","), NULL); 
-        data[i+1] = strtod(strtok(NULL, ")"), NULL); 
+        data[i] = strtod(strtok(NULL, ","), NULL);
+        data[i+1] = strtod(strtok(NULL, ")"), NULL);
         strtok(NULL, "(");
         }
     return PyArray_Return(array);
