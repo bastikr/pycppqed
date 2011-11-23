@@ -89,7 +89,7 @@ def _numpy2blitz(array):
     dimensionstr = " x ".join(dims)
     return "%s \n[ %s ]\n\n" % (dimensionstr, datastr)
 
-def _split_cppqed_output(filename, ev_handler, sv_handler, basis_handler):
+def _split_cppqed_output(filename, head_handler, ev_handler, sv_handler, basis_handler):
     """
     Split a C++QED output file into expectation values and statevectors.
 
@@ -112,42 +112,46 @@ def _split_cppqed_output(filename, ev_handler, sv_handler, basis_handler):
             A string containing the comment section of the C++QED output file.
     """
     f = open(filename)
-    buf = f.read()
-    f.close()
-    # Find end of comment section.
-    pos = 0
-    while buf[pos] in ("\n", "#"):
-        pos = buf.find("\n\n", pos) + 2
-        assert pos != -1
-    # Store comments in Info object.
-    commentstr = buf[:pos-2]
-    # Eliminate comment section from buffer.
-    buf = buf[pos:]
-    pos = 0
-    length = len(buf)
-    while pos < length:
-        # Find start of next state vector.
-        sv_start = buf.find("\n(", pos)
-        ev_end = buf.find("\n#", pos, sv_start)
-        if ev_end == -1:
-            ev_end = sv_start
-        else:
-            name = buf[ev_end+2:sv_start].strip()
-            basis_start = sv_start
-            basis_end = buf.find("]", basis_start)
-            sv_start = buf.find("\n(", basis_end)
-            basis_handler(name, buf[basis_start+1:basis_end+1])
-        # Handle the expectation values that were calculated before the state
-        # vector.
-        map(ev_handler, buf[pos:ev_end].splitlines())
-        # If there is no other state vector stop searching.
-        if sv_start == -1:
+    buf = []
+
+    # Iterate over data section.
+    while True:
+        line = f.next()
+        if line.strip(" \n") and not line.startswith("#"):
             break
-        sv_end = buf.find("]", sv_start)
-        assert sv_end != -1
-        sv_handler(buf[sv_start+1:sv_end+1])
-        pos = sv_end + 2
-    return commentstr
+        buf.append(line)
+    head_handler("".join(buf))
+    del buf
+
+    # Iterate over data section.
+    while True:
+        if not line.strip():
+            pass
+        elif line.startswith("#"):
+            header = line
+            buf = []
+            while True:
+                line = f.next()
+                buf.append(line)
+                if line.endswith(" ]\n"):
+                    break
+            basis_handler(header, "".join(buf))
+            del buf
+        elif line.startswith("("):
+            buf = [line]
+            while True:
+                line = f.next()
+                buf.append(line)
+                if line.endswith(" ]\n"):
+                    break
+            sv_handler("".join(buf))
+        else:
+            ev_handler(line)
+        try:
+            line = f.next()
+        except StopIteration:
+            break
+    f.close()
 
 def load_cppqed(filename):
     """
@@ -169,6 +173,7 @@ def load_cppqed(filename):
             state vectors and information about the calculated system.
     """
     # Define handlers for state vector strings and expectation values strings.
+    head = []
     evs = [] # Expectation values
     svs = [] # State vectors
     basis = [None] # Holds last basis vector
@@ -182,11 +187,11 @@ def load_cppqed(filename):
         t = evs[-1][0]
         ba = _blitz2numpy(svstr)
         svs.append(statevector.StateVector(ba, t, basis=basis[0]))
-    def basis_handler(name, svstr):
+    def basis_handler(header, svstr):
         states = _blitz2numpy(svstr)
-        BASES = pycppqed.BASES
-        basis[0] = BASES[name](states) if name in BASES else states
-    commentstr = _split_cppqed_output(filename, ev_handler, sv_handler,
+        #BASES = pycppqed.BASES
+        #basis[0] = BASES[name](states) if name in BASES else states
+    _split_cppqed_output(filename, head.append, ev_handler, sv_handler,
                                       basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
     svstraj = statevector.StateVectorTrajectory(svs)
@@ -194,7 +199,7 @@ def load_cppqed(filename):
     titles = []
     subsystems = utils.OrderedDict()
     try:
-        desc = description.Description(commentstr)
+        desc = description.Description(head[0])
     except:
         print "Error while reading commentsection, please contact maintainer."
         qs = quantumsystem.QuantumSystemCompound(svstraj)
@@ -284,6 +289,7 @@ def split_cppqed(readpath, writepath, header=True):
     while the state vectors are saved to the same directory with the
     naming convention ``{path}_{time}.sv``.
     """
+    head = []
     evs = [] # Expectation values
     def sv_handler(svstr):
         if not evs:
@@ -306,10 +312,10 @@ def split_cppqed(readpath, writepath, header=True):
             f.write("# %s 1\n" % t)
         f.write(svstr)
         f.close()
-    commentstr = _split_cppqed_output(readpath, evs.append, sv_handler,
+    _split_cppqed_output(readpath, head.append, evs.append, sv_handler,
                                       basis_handler)
     f = open(writepath, "w")
-    f.write(commentstr)
+    f.write("".join(head))
     f.write("\n\n%s\n" % "\n".join(evs) )
     f.close()
 
