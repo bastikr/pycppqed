@@ -122,13 +122,13 @@ class CoherentBasis:
         """
         Calculate scalar product of two vectors given in this basis.
         """
-        return self.dual(psi1)*psi2.H
+        return self.dual(psi1).H*psi2
 
     def norm(self, psi):
         """
         Calculate the norm of a vector given in this basis.
         """
-        return mp.sqrt(mp.re(self.dual(psi)*psi.H))
+        return mp.sqrt(self.dual(psi).H*psi)
 
     def coordinates(self, alpha):
         """
