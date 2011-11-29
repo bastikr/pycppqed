@@ -89,7 +89,7 @@ def _numpy2blitz(array):
     dimensionstr = " x ".join(dims)
     return "%s \n[ %s ]\n\n" % (dimensionstr, datastr)
 
-def _split_cppqed_output(filename, head_handler, ev_handler, sv_handler, basis_handler):
+def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler):
     """
     Split a C++QED output file into expectation values and statevectors.
 
@@ -185,14 +185,26 @@ def load_cppqed(filename):
         evs.append(ev)
     def sv_handler(svstr):
         t = evs[-1][0]
-        ba = _blitz2numpy(svstr)
-        svs.append(statevector.StateVector(ba, t, basis=basis[0]))
+        data = _blitz2numpy(svstr)
+        svs.append(statevector.StateVector(data, t, basis=basis[0]))
     def basis_handler(header, svstr):
+        pos1 = header.find("SYS<")+4
+        pos2 = header.find(">", pos1)
+        sysnumber = int(header[pos1:pos2])
+        pos1 = header.find("TYPE<", pos2)+5
+        pos2 = header.find(">", pos1)
+        basistype = header[pos1:pos2]
         states = _blitz2numpy(svstr)
-        #BASES = pycppqed.BASES
-        #basis[0] = BASES[name](states) if name in BASES else states
-    _split_cppqed_output(filename, head.append, ev_handler, sv_handler,
-                                      basis_handler)
+        BASES = pycppqed.BASES
+        if sysnumber != -1:
+            if basis[0] is None:
+                basis[0] = (None, None)
+            l = list(basis[0])
+            l[sysnumber] = BASES[basistype](states) if basistype in BASES else states
+            basis[0] = tuple(l)
+        else:
+            basis[0] = BASES[basistype](states) if basistype in BASES else states
+    _parse_cppqed(filename, head.append, ev_handler, sv_handler, basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
     svstraj = statevector.StateVectorTrajectory(svs)
     time = evs[0,:]
@@ -312,8 +324,7 @@ def split_cppqed(readpath, writepath, header=True):
             f.write("# %s 1\n" % t)
         f.write(svstr)
         f.close()
-    _split_cppqed_output(readpath, head.append, evs.append, sv_handler,
-                                      basis_handler)
+    _parse_cppqed(readpath, head.append, evs.append, sv_handler, basis_handler)
     f = open(writepath, "w")
     f.write("".join(head))
     f.write("\n\n%s\n" % "\n".join(evs) )

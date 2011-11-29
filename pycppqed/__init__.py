@@ -12,5 +12,5 @@ from statevector import StateVector
 from quantumsystem import QuantumSystem, Particle, Mode
 
 BASES = {
-    "COHERENT" : coherent.CoherentBasis,
+    "coherent" : coherent.CoherentBasis,
 }
