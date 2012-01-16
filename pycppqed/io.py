@@ -185,7 +185,10 @@ def load_cppqed(filename):
     def basis_handler(name, svstr):
         states = _blitz2numpy(svstr)
         BASES = pycppqed.BASES
-        basis[0] = BASES[name](states) if name in BASES else states
+        if name in BASES:
+            basis[0] = BASES[name](states)
+        else:
+            basis[0] = states
     commentstr = _split_cppqed_output(filename, ev_handler, sv_handler,
                                       basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
