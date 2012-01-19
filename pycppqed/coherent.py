@@ -99,7 +99,10 @@ class CoherentBasis:
                         -mp.mpf(1)/2*(abs(alpha_i)**2 + abs(beta_j)**2)\
                         + mp.conj(alpha_i)*beta_j\
                         )
-        return r if is_matrix else r[0,0]
+        if is_matrix:
+            return r
+        else:
+            return r[0,0]
 
     def dual(self, psi):
         """

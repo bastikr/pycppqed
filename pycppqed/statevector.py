@@ -395,7 +395,10 @@ class StateVectorTrajectory(numpy.ndarray):
             array.time = time
         svs = [None]*array.shape[0]
         for i, entry in enumerate(array):
-            basis = data[i].basis if hasattr(data[i], "basis") else None
+            if hasattr(data[i], "basis"):
+                basis = data[i].basis
+            else:
+                basis = None
             svs[i] = StateVector(entry, time=array.time[i], basis=basis, copy=False)
         array.statevectors = svs
         return array

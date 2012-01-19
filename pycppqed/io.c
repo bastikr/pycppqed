@@ -1,7 +1,4 @@
 #include <Python.h>
-//#include <numpy/arrayobject.h>
-#include "/usr/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h"
-//#include <Numeric/arrayobject.h>
 #include <string.h>
 
 static PyObject *parse(PyObject *self, PyObject *args){

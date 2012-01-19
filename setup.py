@@ -1,5 +1,6 @@
 from distutils.core import setup, Extension, Command
 import unittest
+import numpy as np
 
 cio = Extension("pycppqed.cio", sources=["pycppqed/io.c"])
 
@@ -32,5 +33,6 @@ setup(
     ext_modules = [cio],
     cmdclass = {
         "test": test,
-        }
+        },
+    include_dirs = [np.get_include()]
     )
