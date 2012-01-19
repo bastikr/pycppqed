@@ -198,10 +198,16 @@ def load_cppqed(filename):
             if basis[0] is None:
                 basis[0] = (None, None)
             l = list(basis[0])
-            l[sysnumber] = BASES[basistype](states) if basistype in BASES else states
+            if basistype in BASES:
+                l[sysnumber] = BASES[basistype](states)
+            else:
+                states
             basis[0] = tuple(l)
         else:
-            basis[0] = BASES[basistype](states) if basistype in BASES else states
+            if basistype in BASES:
+                basis[0] = BASES[basistype](states)
+            else:
+                states
     _parse_cppqed(filename, head.append, ev_handler, sv_handler, basis_handler)
     evs = numpy.array(evs).swapaxes(0,1)
     svstraj = statevector.StateVectorTrajectory(svs)
