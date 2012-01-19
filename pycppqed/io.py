@@ -10,8 +10,6 @@ Most important are:
 import numpy
 import statevector
 import expvalues
-import quantumsystem
-import description
 import utils
 import pycppqed
 try:
@@ -168,8 +166,8 @@ def load_cppqed(filename):
         * *evs*
             A :class:`pycppqed.expvalues.ExpectationValueCollection` holding
             all expectation values.
-        * *qs*
-            A :class:`pycppqed.quantumsystem.QuantumSystem` holding all
+        * *svs*
+            A :class:`pycppqed.statevector.StateVectorTrajectory` holding all
             state vectors and information about the calculated system.
     """
     # Define handlers for state vector strings and expectation values strings.
@@ -209,26 +207,8 @@ def load_cppqed(filename):
     svstraj = statevector.StateVectorTrajectory(svs)
     time = evs[0,:]
     titles = []
-    subsystems = utils.OrderedDict()
-    try:
-        desc = description.Description(head[0])
-    except:
-        print "Error while reading commentsection, please contact maintainer."
-        qs = quantumsystem.QuantumSystemCompound(svstraj)
-    else:
-        start = 0
-        _systems = desc.quantumsystem.subsystems
-        length = len(_systems)
-        for i, subs in enumerate(desc.expvalues.subsystems):
-            titles.extend(subs.entrys.values())
-            end = len(titles)
-            if 0<i<=length:
-                subsystems["(%s)%s" % (i-1, _systems[i-1].__name__)] = (start, end)
-            start = end
-        qs = quantumsystem.QuantumSystemCompound(svstraj, *_systems)
-    evstraj = expvalues.ExpectationValueCollection(evs, time=time,
-                            titles=titles, subsystems=subsystems, copy=False)
-    return evstraj, qs
+    evstraj = expvalues.ExpectationValueCollection(evs, time=time, copy=False)
+    return evstraj, svstraj
 
 def load_statevector(filename):
     """

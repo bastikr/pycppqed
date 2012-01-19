@@ -12,7 +12,6 @@ different points of time while the :class:`ExpectationValueCollection` stores
 
 import numpy
 import utils
-import visualization
 
 class ExpectationValueTrajectory(numpy.ndarray):
     r"""
@@ -61,8 +60,6 @@ class ExpectationValueTrajectory(numpy.ndarray):
         else:
             title = self.title
         return "%s('%s')" % (clsname, title)
-
-    plot = visualization.expvaluetrajectory
 
 
 class ExpectationValueCollection(numpy.ndarray):
@@ -144,6 +141,4 @@ class ExpectationValueCollection(numpy.ndarray):
     def __str__(self):
         clsname = self.__class__.__name__
         return "%s('%s')" % (clsname, "', '".join(self.titles))
-
-    plot = visualization.expvaluecollection
 

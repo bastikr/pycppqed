@@ -12,7 +12,6 @@ points of time.
 
 import numpy
 import expvalues
-import visualization
 try:
     set()
 except NameError:
@@ -352,8 +351,6 @@ class StateVector(numpy.ndarray):
         return StateVector(numpy.multiply.outer(self, array))
 
     __xor__ = outer
-
-    plot = visualization.statevector
 
 
 class StateVectorTrajectory(numpy.ndarray):
