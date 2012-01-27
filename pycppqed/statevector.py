@@ -385,7 +385,7 @@ class StateVectorTrajectory(numpy.ndarray):
     """
     def __new__(cls, data, time=None, **kwargs):
         array = numpy.array(data, **kwargs)
-        array = array.view(cls)
+        array = numpy.asarray(array).view(cls)
         if time is None:
             array.time = numpy.array([sv.time for sv in data])
         else:
@@ -396,7 +396,7 @@ class StateVectorTrajectory(numpy.ndarray):
                 basis = data[i].basis
             else:
                 basis = None
-            svs[i] = StateVector(entry, time=array.time[i], basis=basis, copy=False)
+            svs[i] = StateVector(entry, time=array.time[i], basis=basis, copy=True)
         array.statevectors = svs
         return array
 
