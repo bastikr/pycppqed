@@ -125,7 +125,7 @@ def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler)
     while True:
         if not line.strip():
             pass
-        elif line.startswith("#"):
+        elif line.startswith("# BASIS"):
             header = line
             buf = []
             while True:
@@ -135,6 +135,8 @@ def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler)
                     break
             basis_handler(header, "".join(buf))
             del buf
+        elif line.startswith("#"):
+            pass
         elif line.startswith("("):
             buf = [line]
             while True:
