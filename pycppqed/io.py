@@ -12,6 +12,7 @@ import statevector
 import expvalues
 import utils
 import pycppqed
+import bz2
 try:
     import cio
 except:
@@ -109,7 +110,10 @@ def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler)
         * *commentstr*
             A string containing the comment section of the C++QED output file.
     """
-    f = open(filename)
+    if filename.endswith("bz2"):
+        f = bz2.BZ2File(filename)
+    else:
+        f = open(filename)
     buf = []
 
     # Iterate over data section.
