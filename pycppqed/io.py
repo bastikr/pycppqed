@@ -110,10 +110,7 @@ def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler)
         * *commentstr*
             A string containing the comment section of the C++QED output file.
     """
-    if filename.endswith("bz2"):
-        f = bz2.BZ2File(filename)
-    else:
-        f = open(filename)
+    f = _open_possibly_bz2(filename)
     buf = []
 
     # Iterate over data section.
@@ -156,6 +153,15 @@ def _parse_cppqed(filename, head_handler, ev_handler, sv_handler, basis_handler)
         except StopIteration:
             break
     f.close()
+
+def _open_possibly_bz2(filename):
+    """
+    Return a bz2 file object if filename ends with bz2, else return regular file object
+    """
+    if filename.endswith("bz2"):
+        return bz2.BZ2File(filename)
+    else:
+        return open(filename)
 
 def load_cppqed(filename):
     """
@@ -237,7 +243,7 @@ def load_statevector(filename):
         * *sv*
             A :class:`pycppqed.statevector.StateVector` instance.
     """
-    f = open(filename)
+    f = _open_possibly_bz2(filename)
     buf = f.read()
     f.close()
     if buf.startswith("# "): # Syntax of old statevector files.
