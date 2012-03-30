@@ -38,13 +38,20 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
             gaussian wave packet in the k-space.
 
     The generated StateVector is normalized and given in the k-space. It
-    is the Fourier transformed of the following expression:
+    is the discretized and Fourier transformed of the following expression:
 
         .. math::
 
-            \Psi(x) = \frac {1} {\sqrt[4]{2 \pi}} *
-                            e^{-\frac {x^2} {4*{\Delta x}^2}}
+            \Psi(x) = \frac {1} {\sqrt[4]{2 \pi}} * \frac {1} {\sqrt{\Delta x}}
+                            e^{-\frac {x^2} {4*{\Delta x}^2}}*e^{i k_0x}
+    
+    The discretization is given by:
+    
+        .. math::
+            
+            \Psi_j = \sqrt{\frac{L}{N}} \Psi(x_j),\qquad x_j=-\pi,-\pi+dx,...,\pi-dx
     """
+    
     N = 2**fin
     L = 2*numpy.pi
     if 6.*sigma > L:
@@ -52,16 +59,11 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
     dx = L/float(N)
     if sigma < dx:
         print "Warning: Sigma is maybe too small."
-    kc = numpy.pi/dx
-    K = numpy.linspace(-kc, kc, N, endpoint=False)
-    X_transl = numpy.linspace(-L/2., L/2., N, endpoint=False)
-    X = X_transl + x0
-    phase = numpy.exp(1j*X*k0)
-    Norm = 1/(2*numpy.pi)**(1./4)/numpy.sqrt(sigma)
-    f_transl = Norm*numpy.exp(-X_transl**2/(4*sigma**2))*phase
-    F_transl = fft.fftshift(fft.fft(f_transl))*dx/numpy.sqrt(2*numpy.pi)
-    F = F_transl*numpy.exp(-1j*x0*K)
-    return statevector.StateVector(F)
+    X = numpy.linspace(-L/2., L/2., N, endpoint=False)
+    Norm = numpy.sqrt(L/N)/(2*numpy.pi)**(1./4)/numpy.sqrt(sigma)
+    Psi_Pos = Norm*numpy.exp(-(X-x0)**2/(4*sigma**2))*numpy.exp(1j*X*k0)
+    Psi_Mom = fft_state(Psi_Pos, position_to_momentum=True)
+    return statevector.StateVector(Psi_Mom).normalize()
 
 def fft_state(sv, position_to_momentum=False):
     r"""
@@ -89,9 +91,9 @@ def fft_state(sv, position_to_momentum=False):
     """
     norm = numpy.sqrt(numpy.prod(sv.shape))
     if position_to_momentum:
-        return statevector.StateVector(fft.fftshift(fft.fftn(sv))/norm)
+        return statevector.StateVector(fft.fftshift(fft.fftn(fft.ifftshift(sv)))/norm)
     else:
-        return statevector.StateVector(fft.ifftn(fft.ifftshift(sv))*norm)
+        return statevector.StateVector(fft.fftshift(fft.ifftn(fft.ifftshift(sv)))*norm)
 
 
 def coherent(alpha=2, N=20):
