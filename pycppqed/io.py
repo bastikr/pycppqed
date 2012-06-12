@@ -18,6 +18,11 @@ try:
 except:
     print "C extension for 'io.py' is not used ..."
     cio = None
+try:
+    import ciobin
+except:
+    print "C++ extension to support binary statevector files not available..."
+    ciobin = None
 
 def _blitz2numpy(blitzstr):
     """
@@ -243,6 +248,12 @@ def load_statevector(filename):
         * *sv*
             A :class:`pycppqed.statevector.StateVector` instance.
     """
+    if filename.endswith(".svbin"):
+        if ciobin:
+            (ba,t,_) = ciobin.parse(open(filename,'rb').read())
+            return statevector.StateVector(ba,t)
+        else:
+            raise IOError("C++ extension to support binary statevector files not available...")
     f = _open_possibly_bz2(filename)
     buf = f.read()
     f.close()
@@ -250,6 +261,7 @@ def load_statevector(filename):
         commentstr, datastr = buf.split("\n", 1)
     else:
         datastr, commentstr = buf.rstrip(" \n\t").rsplit("\n", 1)
+        datastr = datastr.split('#',1)[0]
         if not commentstr.startswith("# "):
             raise ValueError("Not a valid statevector file.")
     time = commentstr[2:commentstr.find(" ", 3)]

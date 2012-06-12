@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 
 cio = Extension("pycppqed.cio", sources=["pycppqed/io.c"])
+ciobin = Extension("pycppqed.ciobin", sources=["pycppqed/iobin.cc"], libraries=['boost_serialization'])
 
 class test(Command):
     """
@@ -30,7 +31,7 @@ setup(
     url = "http://github.com/bastikr/pycppqed",
     license = "BSD",
     packages = ('pycppqed',),
-    ext_modules = [cio],
+    ext_modules = [cio,ciobin],
     cmdclass = {
         "test": test,
         },
