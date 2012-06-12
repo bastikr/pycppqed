@@ -1,6 +1,7 @@
 from distutils.core import setup, Extension, Command
 import unittest
 import numpy as np
+import sys
 
 cio = Extension("pycppqed.cio", sources=["pycppqed/io.c"])
 ciobin = Extension("pycppqed.ciobin", sources=["pycppqed/iobin.cc"], libraries=['boost_serialization'])
@@ -23,6 +24,12 @@ class test(Command):
         unittest.TextTestRunner(verbosity=2).run(suite)
 
 
+ext_modules = [cio]
+if '--add-iobin' in sys.argv:
+    ext_modules.append(ciobin)
+    sys.argv.remove('--add-iobin')
+
+
 setup(
     name = "PyCppQED",
     version = "0.1.2",
@@ -31,7 +38,7 @@ setup(
     url = "http://github.com/bastikr/pycppqed",
     license = "BSD",
     packages = ('pycppqed',),
-    ext_modules = [cio,ciobin],
+    ext_modules = ext_modules,
     cmdclass = {
         "test": test,
         },
