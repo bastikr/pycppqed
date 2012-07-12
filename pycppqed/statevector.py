@@ -200,9 +200,10 @@ class StateVector(numpy.ndarray):
             a = _sorted_list(indices, True)
         return numpy.tensordot(self, self.conjugate(), (a,a))
 
-    def fft(self, axis=0):
+    def fft(self, axes=None):
         r"""
-        Return a StateVector where the given axis is Fourier transformed.
+        Return a StateVector where the given axes are Fourier transformed.
+        This is the transformation position space -> momentum space.
 
         *Usage*
             >>> sv = StateVector((0,1,1.7,2,1.7,1,0), norm=True)
@@ -211,12 +212,31 @@ class StateVector(numpy.ndarray):
 
         *Arguments*
             * *axis* (optional)
-                Axis over which the fft is done. (Default is 0)
+                Sequence of ints, axes over which the fft is done. (Default is all)
+        """
+        return self._fft_helper(axes=axes,inverse=False)
+    
+    def ifft(self, axes=None):
+        r"""
+        Return a StateVector where the given axes are inversely Fourier transformed.
+        This is the transformation momentum space -> position space.
+        
+        See :func:`StateVector.fft` for details.
+        """
+        return self._fft_helper(axes=axes,inverse=True)
+    
+    def _fft_helper(self, axes=None, inverse=False):
+        r"""
+        Helper function for fft and ifft which performs the actual transformation.
         """
         f = numpy.fft
-        N = self.shape[axis]
-        array = f.fftshift(f.ifft(f.ifftshift(self, axes=(axis,)), axis=axis),
-                           axes=(axis,)) * N/numpy.sqrt(2*numpy.pi)
+        norm = numpy.sqrt(numpy.prod(numpy.array(self.shape)[axes]))
+        if inverse:
+            transform=f.ifftn
+        else:
+            transform=f.fftn
+            norm=1/norm
+        array = f.fftshift(transform(f.ifftshift(self, axes=axes), axes=axes), axes=axes)*norm
         return StateVector(array, time=self.time)
 
     def expvalue(self, operator, indices=None, title=None, multi=False):
