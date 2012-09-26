@@ -10,7 +10,8 @@ import numpy
 import numpy.fft as fft
 import statevector
 
-def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
+
+def gaussian(x0=0, k0=0, sigma=0.5, fin=6, isItInK=False, cppqed=False):
     r"""
     Generate a StateVector with a normal distribution.
 
@@ -31,6 +32,13 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
 
         * *fin* (optional)
             :math:`2^{fin}` determines the amount of sample points.
+
+        * *isItInK* (optional)
+            if true, sigma is interpreted as width of the wavepacket in k-space
+
+        * *cppqed* (optional)
+            C++QED compatibility flag, if set to true then x0 (but not sigma) is expected
+            in units of Pi.
 
     *Returns*
         * *sv*
@@ -53,16 +61,25 @@ def gaussian(x0=0, k0=0, sigma=0.5, fin=6):
     """
     
     N = 2**fin
-    L = 2*numpy.pi
+    if cppqed: x0=x0*numpy.pi
+    if isItInK:
+        L = N
+        offset1=k0
+        offset2=-x0
+    else:
+        L = 2*numpy.pi
+        offset1=x0
+        offset2=k0
     if 6.*sigma > L:
         print "Warning: Sigma is maybe too big."
     dx = L/float(N)
     if sigma < dx:
         print "Warning: Sigma is maybe too small."
-    X = numpy.linspace(-L/2., L/2., N, endpoint=False)
+    array = numpy.linspace(-L/2., L/2., N, endpoint=False)
     Norm = numpy.sqrt(L/N)/(2*numpy.pi)**(1./4)/numpy.sqrt(sigma)
-    Psi_Pos = Norm*numpy.exp(-(X-x0)**2/(4*sigma**2))*numpy.exp(1j*X*k0)
-    return statevector.StateVector(Psi_Pos).fft().normalize()
+    Psi = statevector.StateVector(Norm*numpy.exp(-(array-offset1)**2/(4*sigma**2))*numpy.exp(1j*array*offset2))
+    if not isItInK: Psi=Psi.fft()
+    return Psi.normalize()
 
 def coherent(alpha=2, N=20):
     r"""
