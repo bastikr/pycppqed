@@ -149,3 +149,27 @@ def fock(dim,i):
     psi=numpy.zeros(dim)
     psi[i]=1.
     return statevector.StateVector(psi)
+
+def momentum_eigen(k,fin=6):
+    r"""
+    Generate a momentum eigenstate with momentum p in a space with finesse fin.
+
+    *Usage*
+        >>> sv = momentum_eigen(0, fin=4)
+        >>> print sv
+        StateVector(16)
+
+    *Arguments*
+        * *k*
+            Wavenumber of the resulting state.
+
+        * *fin* (optional)
+            Finesse of the resulting state (default 4). 
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector`.
+    """
+
+    num=2**fin
+    return fock(num,k+num/2)
