@@ -126,3 +126,26 @@ def coherent(alpha=2, N=20):
     x = numpy.exp(-numpy.abs(alpha)**2/2.)*x
     return statevector.StateVector(x)
 
+def fock(dim,i):
+    r"""
+    Generate a Fock space basis vector.
+
+    *Usage*
+        >>> sv = fock(dim=8, i=4)
+        >>> print sv
+        StateVector(8)
+
+    *Arguments*
+        * *dim*
+            Dimension of the Fock space.
+
+        * *i*
+            Genereate the i-th basis vector
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector`.
+    """
+    psi=numpy.zeros(dim)
+    psi[i]=1.
+    return statevector.StateVector(psi)
