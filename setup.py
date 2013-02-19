@@ -4,7 +4,18 @@ import numpy as np
 import sys
 
 cio = Extension("pycppqed.cio", sources=["pycppqed/io.c"])
-ciobin = Extension("pycppqed.ciobin", sources=["pycppqed/iobin.cc"], libraries=['boost_serialization'])
+
+library_dirs_args = filter(lambda s:s.startswith('--library-dirs'), sys.argv)
+if library_dirs_args:
+    library_dirs = []
+    for l in library_dirs_args:
+        library_dirs += l.split('=')[1].split(':')
+    sys.argv.remove(l)
+else:
+    library_dirs = None
+
+
+ciobin = Extension("pycppqed.ciobin", sources=["pycppqed/iobin.cc"], libraries=['boost_serialization','blitz'], library_dirs=library_dirs, runtime_library_dirs=library_dirs)
 
 class test(Command):
     """
