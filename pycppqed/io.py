@@ -243,6 +243,9 @@ def load_statevector(filename):
     *Arguments*
         * *filename*
             Path to the C++QED state vector file that should be loaded.
+            If the filename ends with .svbin, the state vector file is expected to be
+            a binary file and a `IOError` is raised if the required `ciobin` module is not
+            available.
 
     *Returns*
         * *sv*
@@ -279,6 +282,8 @@ def save_statevector(filename, sv):
     *Arguments*
         *filename*
             Path to the location where the StateVector should be saved to.
+            If the filename ends with .svbin, a binary state vector file is written
+            and a `IOError` is raised if the required `ciobin` module is not available.
 
         *sv*
             A :class:`pycppqed.statevector.StateVector` instance.
