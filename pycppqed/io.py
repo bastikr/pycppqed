@@ -288,13 +288,13 @@ def save_statevector(filename, sv):
         *sv*
             A :class:`pycppqed.statevector.StateVector` instance.
     """
-    f = open(filename, "w")
     if filename.endswith(".svbin"):
         if ciobin:
             ciobin.write(filename,sv,sv.time)
             return
         else:
             raise IOError("C++ extension to support binary statevector files not available...")
+    f = open(filename, "w")
     f.write(_numpy2blitz(sv))
     f.write("\n# %s 1\n" % sv.time)
     f.close()
