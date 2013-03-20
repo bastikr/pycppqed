@@ -1,4 +1,3 @@
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <blitz/array.h>
@@ -28,7 +27,7 @@ PyObject *doParse(boost::archive::binary_iarchive &ia) {
   ia >> t >> dtTry;
   dcomp *data = a.dataFirst();
   PyObject *wrapNumpy = PyArray_SimpleNewFromData(RANK, dims, NPY_CDOUBLE,data);
-  PyArrayObject *array = (PyArrayObject *) PyArray_FromAny(wrapNumpy,NULL,0,0,NPY_ARRAY_ENSURECOPY,NULL);
+  PyArrayObject *array = (PyArrayObject *) PyArray_FromAny(wrapNumpy,NULL,0,0,NPY_ENSURECOPY,NULL);
   return Py_BuildValue("(Odd)", PyArray_Return(array), t, dtTry);
 }
 
@@ -36,7 +35,6 @@ static PyObject *parse(PyObject *self, PyObject *args){
     // Read in arguments: datastr, length
     char *datastr;
     int size;
-    double t,dtTry;
     if (!PyArg_ParseTuple(args, "s#", &datastr, &size)) return NULL;
     int rank;
     std::stringstream datastream(std::string(datastr, size));
@@ -74,7 +72,7 @@ static PyObject *write(PyObject *self, PyObject *args){
   PyObject *array;
   double time;
   if (!PyArg_ParseTuple(args, "sO!d", &filename, &PyArray_Type, &array, &time)) return NULL;
-  PyArrayObject *array_c = (PyArrayObject *) PyArray_FromAny(array, PyArray_DescrFromType(NPY_CDOUBLE),0,0,NPY_ARRAY_CARRAY_RO,NULL);
+  PyArrayObject *array_c = (PyArrayObject *) PyArray_FromAny(array, PyArray_DescrFromType(NPY_CDOUBLE),0,0,NPY_CARRAY_RO,NULL);
   std::ofstream ofs(filename,ios_base::out|ios_base::binary|ios_base::trunc);
   boost::archive::binary_oarchive oa(ofs);
   int r=PyArray_NDIM(array_c);
