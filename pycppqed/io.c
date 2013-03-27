@@ -9,10 +9,10 @@ static PyObject *parse(PyObject *self, PyObject *args){
     if (!PyArg_ParseTuple(args, "si", &datastr, &length)) return NULL;
 
     // Create Array with right dimensions, length and content.
-    int dims[1];
+    npy_intp dims[1];
     dims[0] = length;
     PyArrayObject *array = (PyArrayObject *)
-        PyArray_FromDims(1, dims, PyArray_CDOUBLE);
+        PyArray_SimpleNew(1, dims, PyArray_CDOUBLE);
 
     // Create pointer to data.
     double *data;

@@ -126,3 +126,50 @@ def coherent(alpha=2, N=20):
     x = numpy.exp(-numpy.abs(alpha)**2/2.)*x
     return statevector.StateVector(x)
 
+def fock(dim,i):
+    r"""
+    Generate a Fock space basis vector.
+
+    *Usage*
+        >>> sv = fock(dim=8, i=4)
+        >>> print sv
+        StateVector(8)
+
+    *Arguments*
+        * *dim*
+            Dimension of the Fock space.
+
+        * *i*
+            Genereate the i-th basis vector
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector`.
+    """
+    psi=numpy.zeros(dim)
+    psi[i]=1.
+    return statevector.StateVector(psi)
+
+def momentum_eigen(k,fin=6):
+    r"""
+    Generate a momentum eigenstate with momentum p in a space with finesse fin.
+
+    *Usage*
+        >>> sv = momentum_eigen(0, fin=4)
+        >>> print sv
+        StateVector(16)
+
+    *Arguments*
+        * *k*
+            Wavenumber of the resulting state.
+
+        * *fin* (optional)
+            Finesse of the resulting state (default 4). 
+
+    *Returns*
+        * *sv*
+            A :class:`pycppqed.statevector.StateVector`.
+    """
+
+    num=2**fin
+    return fock(num,k+num/2)

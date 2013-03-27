@@ -243,6 +243,9 @@ def load_statevector(filename):
     *Arguments*
         * *filename*
             Path to the C++QED state vector file that should be loaded.
+            If the filename ends with .svbin, the state vector file is expected to be
+            a binary file and a :class:`IOError` is raised if the required `ciobin` module is not
+            available.
 
     *Returns*
         * *sv*
@@ -279,11 +282,18 @@ def save_statevector(filename, sv):
     *Arguments*
         *filename*
             Path to the location where the StateVector should be saved to.
+            If the filename ends with .svbin, a binary state vector file is written
+            and a :class:`IOError` is raised if the required `ciobin` module is not available.
 
         *sv*
             A :class:`pycppqed.statevector.StateVector` instance.
     """
-    isfile = False
+    if filename.endswith(".svbin"):
+        if ciobin:
+            ciobin.write(filename,sv,sv.time)
+            return
+        else:
+            raise IOError("C++ extension to support binary statevector files not available...")
     f = open(filename, "w")
     f.write(_numpy2blitz(sv))
     f.write("\n# %s 1\n" % sv.time)
